@@ -9,8 +9,7 @@ import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
-import ru.practicum.explore_with_me.stats_service.client_submodule.client.StatsClient;
-import ru.practicum.explore_with_me.stats_service.client_submodule.exception.BadRequestParameterException;
+import ru.practicum.explore_with_me.stats_service.client_submodule.StatsClient;
 import ru.practicum.explore_with_me.stats_service.dto_submodule.dto.HitRestView;
 import ru.practicum.explore_with_me.stats_service.dto_submodule.dto.UriStatRestView;
 
@@ -42,14 +41,17 @@ public class StatsClientIntegrationTest {
     @ValueSource(strings = {"", " ", "\n", "\r", "\t", "123.456.789.012", "potato", "125h.55r0.00t0.a345"})
     @NullSource
     public void addNewHit_whenGetIncorrectIpParameter_thenThrowException(String ip) {
-        BadRequestParameterException exception = assertThrows(BadRequestParameterException.class, () ->
-                statsClient.addNewHit(ip, "/events"));
+        ResponseEntity<HitRestView> wrongHitResponse = statsClient.addNewHit(ip, "/events");
+        assertThat(wrongHitResponse.getStatusCode(), equalTo(HttpStatus.BAD_REQUEST));
+        HitRestView wrongHit = wrongHitResponse.getBody();
+        assertThat(wrongHit, notNullValue());
         if (ip == null) {
-            assertThat(exception.getMessage(), equalTo("Wrong method parameter: IP or URI cannot be null"));
+            assertThat(wrongHit.getApplication(), containsString(
+                    "saveHit.hitRestCommand.ip: не должно равняться null"));
         } else if (ip.isBlank()) {
-            assertThat(exception.getMessage(), equalTo("Wrong method parameter: IP or URI cannot be empty values"));
+            assertThat(wrongHit.getApplication(), equalTo("saveHit.hitRestCommand.ip: не должно быть пустым"));
         } else {
-            assertThat(exception.getMessage(), equalTo("Wrong method parameter: IP not in IPv4 or IPv6 format"));
+            assertThat(wrongHit.getApplication(), equalTo("Wrong method parameter: IP not in IPv4 or IPv6 format"));
         }
     }
 
@@ -57,14 +59,17 @@ public class StatsClientIntegrationTest {
     @ValueSource(strings = {"", " ", "\n", "\r", "\t", "potato", "/test"})
     @NullSource
     public void addNewHit_whenGetIncorrectUriParameter_thenThrowException(String uri) {
-        BadRequestParameterException exception = assertThrows(BadRequestParameterException.class, () ->
-                statsClient.addNewHit(DEFAULT_IP, uri));
+        ResponseEntity<HitRestView> wrongHitResponse = statsClient.addNewHit(DEFAULT_IP, uri);
+        assertThat(wrongHitResponse.getStatusCode(), equalTo(HttpStatus.BAD_REQUEST));
+        HitRestView wrongHit = wrongHitResponse.getBody();
+        assertThat(wrongHit, notNullValue());
         if (uri == null) {
-            assertThat(exception.getMessage(), equalTo("Wrong method parameter: IP or URI cannot be null"));
+            assertThat(wrongHit.getApplication(), containsString(
+                    "saveHit.hitRestCommand.uri: не должно равняться null"));
         } else if (uri.isBlank()) {
-            assertThat(exception.getMessage(), equalTo("Wrong method parameter: IP or URI cannot be empty values"));
+            assertThat(wrongHit.getApplication(), equalTo("saveHit.hitRestCommand.uri: не должно быть пустым"));
         } else {
-            assertThat(exception.getMessage(), equalTo("Wrong method parameter: URI not supported for saving hit"));
+            assertThat(wrongHit.getApplication(), equalTo("Wrong method parameter: URI not supported for saving hit"));
         }
     }
 
@@ -277,42 +282,48 @@ public class StatsClientIntegrationTest {
 
     @Test
     public void getUriStats_whenGetIncorrectParameters_thenReturnCorrectResponseEntity() {
-        BadRequestParameterException exception = assertThrows(BadRequestParameterException.class, () ->
-                statsClient.getUriStats(
-                        null,
-                        LocalDateTime.now(),
-                        null,
-                        false));
-        assertThat(exception.getMessage(), equalTo("Wrong method parameter: " +
+        ResponseEntity<UriStatRestView[]> wrongUriStatResponse = statsClient.getUriStats(
+                null,
+                LocalDateTime.now(),
+                null,
+                false);
+        assertThat(wrongUriStatResponse.getStatusCode(), equalTo(HttpStatus.BAD_REQUEST));
+        UriStatRestView[] wrongUris = wrongUriStatResponse.getBody();
+        assertThat(wrongUris, notNullValue());
+        assertThat(wrongUris[0].getApplication(), equalTo("Wrong method parameter: " +
                 "start or end of period for request cannot be null"));
 
-        exception = assertThrows(BadRequestParameterException.class, () ->
-                statsClient.getUriStats(
+        wrongUriStatResponse = statsClient.getUriStats(
                         LocalDateTime.now().minusSeconds(1),
                         null,
                         null,
-                        false));
-        assertThat(exception.getMessage(), equalTo("Wrong method parameter: " +
+                        false);
+        assertThat(wrongUriStatResponse.getStatusCode(), equalTo(HttpStatus.BAD_REQUEST));
+        wrongUris = wrongUriStatResponse.getBody();
+        assertThat(wrongUris, notNullValue());
+        assertThat(wrongUris[0].getApplication(), equalTo("Wrong method parameter: " +
                 "start or end of period for request cannot be null"));
 
-        exception = assertThrows(BadRequestParameterException.class, () ->
-                statsClient.getUriStats(
+        wrongUriStatResponse = statsClient.getUriStats(
                         LocalDateTime.now().plusSeconds(1),
                         LocalDateTime.now().plusSeconds(2),
                         null,
-                        false
-                ));
-        assertThat(exception.getMessage(), equalTo("Wrong method parameter: " +
+                        false);
+        assertThat(wrongUriStatResponse.getStatusCode(), equalTo(HttpStatus.BAD_REQUEST));
+        wrongUris = wrongUriStatResponse.getBody();
+        assertThat(wrongUris, notNullValue());
+        assertThat(wrongUris[0].getApplication(), equalTo("Wrong method parameter: " +
                 "start of period for requesting cannot be after current moment"));
 
-        exception = assertThrows(BadRequestParameterException.class, () ->
-                statsClient.getUriStats(
+        wrongUriStatResponse = statsClient.getUriStats(
                         LocalDateTime.now().minusSeconds(1),
                         LocalDateTime.now().minusSeconds(2),
                         null,
-                        false
-                ));
-        assertThat(exception.getMessage(), equalTo("Wrong method parameter: " +
+                        false);
+        assertThat(wrongUriStatResponse.getStatusCode(), equalTo(HttpStatus.BAD_REQUEST));
+        wrongUris = wrongUriStatResponse.getBody();
+        assertThat(wrongUris, notNullValue());
+        assertThat(wrongUris[0].getApplication(), equalTo("Wrong method parameter: " +
                 "start of period for requesting cannot be after its end"));
     }
 

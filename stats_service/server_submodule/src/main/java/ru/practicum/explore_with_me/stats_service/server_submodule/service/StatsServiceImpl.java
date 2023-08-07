@@ -15,6 +15,7 @@ import ru.practicum.explore_with_me.stats_service.server_submodule.dao.StatsRepo
 import ru.practicum.explore_with_me.stats_service.server_submodule.dao.UriStatFromDb;
 import ru.practicum.explore_with_me.stats_service.server_submodule.mapper.StatElementsMapper;
 import ru.practicum.explore_with_me.stats_service.server_submodule.dao.HitEntity;
+import ru.practicum.explore_with_me.stats_service.server_submodule.util.MethodParameterValidator;
 
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
@@ -34,6 +35,7 @@ public class StatsServiceImpl implements StatsService {
     private final StatElementsMapper statElementsMapper;
 
     public HitRestView saveHit(@Valid HitRestCommand hitRestCommand) {
+        MethodParameterValidator.validateRequestParameters(hitRestCommand.getIp(), hitRestCommand.getUri());
         HitEntity hitEntity = statElementsMapper.hitRestCommandToEntity(hitRestCommand);
         hitEntity = statsRepository.save(hitEntity);
         log.debug("New hit '{}' was saved", hitEntity);
@@ -45,10 +47,13 @@ public class StatsServiceImpl implements StatsService {
             @NotNull @NotBlank String end,
             String[] uris,
             Boolean ipUnique) {
-        LocalDateTime startDateTime = LocalDateTime.parse(URLDecoder.decode(start, StandardCharsets.UTF_8), FORMATTER);
-        LocalDateTime endDateTime = LocalDateTime.parse(URLDecoder.decode(end, StandardCharsets.UTF_8), FORMATTER);
+        LocalDateTime startDateTime = start.equals("null") ?
+                null : LocalDateTime.parse(URLDecoder.decode(start, StandardCharsets.UTF_8), FORMATTER);
+        LocalDateTime endDateTime = end.equals("null") ?
+                null : LocalDateTime.parse(URLDecoder.decode(end, StandardCharsets.UTF_8), FORMATTER);
+        MethodParameterValidator.validateRequestParameters(startDateTime, endDateTime);
         List<UriStatFromDb> stats;
-        if (ipUnique == null || ipUnique == false) {
+        if (ipUnique == null || !ipUnique) {
             stats = (uris == null || uris.length == 0) ?
                     statsRepository.getAllUriStatsOrderedByHitsCount(startDateTime, endDateTime) :
                     statsRepository.getAllUriStatsOrderedByHitsCountWithUrisArray(startDateTime, endDateTime, uris);

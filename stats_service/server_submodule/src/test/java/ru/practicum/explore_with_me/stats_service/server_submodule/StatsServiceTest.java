@@ -9,7 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.transaction.annotation.Transactional;
 
-import ru.practicum.explore_with_me.stats_service.client_submodule.client.StatsClient;
+import ru.practicum.explore_with_me.stats_service.client_submodule.StatsClient;
 import ru.practicum.explore_with_me.stats_service.dto_submodule.dto.HitRestCommand;
 import ru.practicum.explore_with_me.stats_service.dto_submodule.dto.HitRestView;
 import ru.practicum.explore_with_me.stats_service.dto_submodule.dto.UriStatRestView;
@@ -36,14 +36,14 @@ public class StatsServiceTest {
     public void save_whenGetCorrectHitRestCommand_thenReturnHitRestView() {
         HitRestView savedHit = statsService.saveHit(HitRestCommand.builder()
                 .application("application")
-                .ip("ip")
-                .uri("uri")
+                .ip("127.0.0.1")
+                .uri("/events")
                 .timestamp(DEFAULT_DATE_TIME.format(StatsClient.FORMATTER))
                 .build());
         assertTrue(savedHit.getId().intValue() >= 1);
         assertThat(savedHit.getApplication(), equalTo("application"));
-        assertThat(savedHit.getIp(), equalTo("ip"));
-        assertThat(savedHit.getUri(), equalTo("uri"));
+        assertThat(savedHit.getIp(), equalTo("127.0.0.1"));
+        assertThat(savedHit.getUri(), equalTo("/events"));
         assertThat(savedHit.getTimestamp(), equalTo(DEFAULT_DATE_TIME));
     }
 
@@ -57,8 +57,8 @@ public class StatsServiceTest {
         assertThrows(ConstraintViolationException.class, () ->
                 statsService.saveHit(HitRestCommand.builder()
                 .application(value)
-                .ip("ip")
-                .uri("uri")
+                .ip("127.0.0.1")
+                .uri("/events")
                 .timestamp(DEFAULT_DATE_TIME.format(StatsClient.FORMATTER))
                 .build()));
 
@@ -66,22 +66,22 @@ public class StatsServiceTest {
                 statsService.saveHit(HitRestCommand.builder()
                         .application("application")
                         .ip(value)
-                        .uri("uri")
+                        .uri("/events")
                         .timestamp(DEFAULT_DATE_TIME.format(StatsClient.FORMATTER))
                         .build()));
 
         assertThrows(ConstraintViolationException.class, () ->
                 statsService.saveHit(HitRestCommand.builder()
                         .application("application")
-                        .ip("ip")
+                        .ip("127.0.0.1")
                         .uri(value)
                         .timestamp(DEFAULT_DATE_TIME.format(StatsClient.FORMATTER))
                         .build()));
         assertThrows(ConstraintViolationException.class, () ->
                 statsService.saveHit(HitRestCommand.builder()
                         .application("application")
-                        .ip("ip")
-                        .uri("uri")
+                        .ip("127.0.0.1")
+                        .uri("/events")
                         .timestamp(value)
                         .build()));
     }
@@ -90,20 +90,20 @@ public class StatsServiceTest {
     public void getAllUriStatsOrderedByHits_whenGetCorrectParameters_thenReturnListOfUriStatsRestViews() {
         statsService.saveHit(HitRestCommand.builder()
                 .application("application")
-                .ip("ip")
-                .uri("uri1")
+                .ip("127.0.0.1")
+                .uri("/events/777")
                 .timestamp(DEFAULT_DATE_TIME.format(StatsClient.FORMATTER))
                 .build());
         statsService.saveHit(HitRestCommand.builder()
                 .application("application")
-                .ip("ip")
-                .uri("uri1")
+                .ip("127.0.0.1")
+                .uri("/events/777")
                 .timestamp(DEFAULT_DATE_TIME.format(StatsClient.FORMATTER))
                 .build());
         statsService.saveHit(HitRestCommand.builder()
                 .application("application")
-                .ip("ip")
-                .uri("uri2")
+                .ip("127.0.0.1")
+                .uri("/events")
                 .timestamp(DEFAULT_DATE_TIME.format(StatsClient.FORMATTER))
                 .build());
 
@@ -116,12 +116,12 @@ public class StatsServiceTest {
         assertThat(uriStats, iterableWithSize(2));
         assertThat(uriStats.get(0), equalTo(UriStatRestView.builder()
                 .application("application")
-                .uri("uri1")
+                .uri("/events/777")
                 .hits(2)
                 .build()));
         assertThat(uriStats.get(1), equalTo(UriStatRestView.builder()
                 .application("application")
-                .uri("uri2")
+                .uri("/events")
                 .hits(1)
                 .build()));
     }
