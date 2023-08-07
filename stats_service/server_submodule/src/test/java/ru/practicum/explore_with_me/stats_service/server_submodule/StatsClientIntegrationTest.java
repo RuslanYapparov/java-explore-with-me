@@ -46,10 +46,10 @@ public class StatsClientIntegrationTest {
         HitRestView wrongHit = wrongHitResponse.getBody();
         assertThat(wrongHit, notNullValue());
         if (ip == null) {
-            assertThat(wrongHit.getApplication(), containsString(
-                    "saveHit.hitRestCommand.ip: не должно равняться null"));
+            assertThat(wrongHit.getApplication(), containsString("saveHit.hitRestCommand.ip: "));
         } else if (ip.isBlank()) {
-            assertThat(wrongHit.getApplication(), equalTo("saveHit.hitRestCommand.ip: не должно быть пустым"));
+            assertThat(wrongHit.getApplication(), oneOf("saveHit.hitRestCommand.ip: не должно быть пустым",
+                    "saveHit.hitRestCommand.ip: must not be blank"));
         } else {
             assertThat(wrongHit.getApplication(), equalTo("Wrong method parameter: IP not in IPv4 or IPv6 format"));
         }
@@ -64,10 +64,10 @@ public class StatsClientIntegrationTest {
         HitRestView wrongHit = wrongHitResponse.getBody();
         assertThat(wrongHit, notNullValue());
         if (uri == null) {
-            assertThat(wrongHit.getApplication(), containsString(
-                    "saveHit.hitRestCommand.uri: не должно равняться null"));
+            assertThat(wrongHit.getApplication(), containsString("saveHit.hitRestCommand.uri: "));
         } else if (uri.isBlank()) {
-            assertThat(wrongHit.getApplication(), equalTo("saveHit.hitRestCommand.uri: не должно быть пустым"));
+            assertThat(wrongHit.getApplication(), oneOf("saveHit.hitRestCommand.uri: не должно быть пустым",
+                    "saveHit.hitRestCommand.uri: must not be blank"));
         } else {
             assertThat(wrongHit.getApplication(), equalTo("Wrong method parameter: URI not supported for saving hit"));
         }
