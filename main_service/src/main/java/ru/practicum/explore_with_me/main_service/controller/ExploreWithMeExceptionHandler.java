@@ -3,6 +3,7 @@ package ru.practicum.explore_with_me.main_service.controller;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -56,6 +57,18 @@ public class ExploreWithMeExceptionHandler {
                 .status(HttpStatus.BAD_REQUEST)
                 .reason("Incorrectly made request: type of one or more parameters is not supported (see message).")
                 .message(message)
+                .timestamp(LocalDateTime.now())
+                .build();
+    }
+
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ErrorResponse handleHttpMethodNotReadableException(HttpMessageNotReadableException exception) {
+        log.warn(HttpMessageNotReadableException.class + ": " + exception.getMessage());
+        return ErrorResponse.builder()
+                .status(HttpStatus.BAD_REQUEST)
+                .reason("Failed to read request body (content is incorrect)")
+                .message(exception.getMessage())
                 .timestamp(LocalDateTime.now())
                 .build();
     }
