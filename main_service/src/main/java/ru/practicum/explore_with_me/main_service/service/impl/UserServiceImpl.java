@@ -56,9 +56,8 @@ public class UserServiceImpl implements UserService {
     public void deleteUserById(@Positive long id) {
         UserEntity userEntity = userRepository.findById(id).orElseThrow(() ->
                 new ObjectNotFoundException("Failed to delete user with id'{}': user is not found"));
-        User user = userMapper.fromDbEntity(userEntity);
         userRepository.deleteById(id);
-        log.info("User with id'{}' was deleted", user.getId());
+        log.info("User with id'{}' was deleted", userEntity.getId());
     }
 
 }
