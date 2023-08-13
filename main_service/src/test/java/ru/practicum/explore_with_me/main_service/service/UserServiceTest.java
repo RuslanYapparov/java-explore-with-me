@@ -140,9 +140,11 @@ public class UserServiceTest {
 
     @Test
     public void deleteUserById_whenGetNotExistingIdParameter_thenThrowsException() {
+        long notExistingUserId = secondUser.getId() + 1;
         ObjectNotFoundException exception = assertThrows(ObjectNotFoundException.class, () ->
-                userService.deleteUserById(secondUser.getId() + 1));
-        assertThat(exception.getMessage(), equalTo("Failed to delete user with id'{}': user is not found"));
+                userService.deleteUserById(notExistingUserId));
+        assertThat(exception.getMessage(), equalTo("Failed to delete user with id'" + notExistingUserId +
+                "': user is not found"));
     }
 
 }

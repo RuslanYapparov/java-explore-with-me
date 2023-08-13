@@ -49,14 +49,16 @@ public class CategoryServiceImpl implements CategoryService {
 
     public CategoryRestView getCategoryById(@Positive long categoryId) {
         CategoryEntity categoryEntity = categoryRepository.findById(categoryId).orElseThrow(() ->
-                new ObjectNotFoundException("Failed to get category with id'{}': category is not found"));
+                new ObjectNotFoundException("Failed to get category with id'" + categoryId +
+                        "': category is not found"));
         log.info("Category {} with id'{}' was sent to client", categoryEntity.getName(), categoryEntity.getId());
         return categoryMapper.toRestView(categoryMapper.fromDbEntity(categoryEntity));
     }
 
     public CategoryRestView updateCategory(@Positive long categoryId, @Valid CategoryRestCommand categoryRestCommand) {
         CategoryEntity categoryEntity = categoryRepository.findById(categoryId).orElseThrow(() ->
-                new ObjectNotFoundException("Failed to update category with id'{}': category is not found"));
+                new ObjectNotFoundException("Failed to update category with id'" + categoryId +
+                        "': category is not found"));
         String oldCategoryName = categoryEntity.getName();
         categoryEntity.setName(categoryRestCommand.getName());
         categoryEntity = categoryRepository.save(categoryEntity);
@@ -67,7 +69,8 @@ public class CategoryServiceImpl implements CategoryService {
 
     public void deleteCategoryById(@Positive long categoryId) {
         CategoryEntity categoryEntity = categoryRepository.findById(categoryId).orElseThrow(() ->
-                new ObjectNotFoundException("Failed to delete category with id'{}': category is not found"));
+                new ObjectNotFoundException("Failed to delete category with id'" + categoryId +
+                        "': category is not found"));
         categoryRepository.deleteById(categoryId);
         log.info("Category {} with id'{}' was deleted", categoryEntity.getName(), categoryEntity.getId());
     }

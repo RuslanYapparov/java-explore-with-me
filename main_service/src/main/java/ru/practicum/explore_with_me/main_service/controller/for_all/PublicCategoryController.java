@@ -23,9 +23,9 @@ public class PublicCategoryController {
     }
 
     @GetMapping("{category_id}")
-    public void getCategoryById(@PathVariable(name = "category_id") long categoryId) {
+    public CategoryRestView getCategoryById(@PathVariable(name = "category_id") long categoryId) {
         log.debug("New request to get category with id'{}' was received", categoryId);
-        categoryService.getCategoryById(categoryId);
+        return categoryService.getCategoryById(categoryId);
     }
 
 }

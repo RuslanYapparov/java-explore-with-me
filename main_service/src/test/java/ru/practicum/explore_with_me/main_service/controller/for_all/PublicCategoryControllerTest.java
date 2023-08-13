@@ -12,7 +12,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
-import ru.practicum.explore_with_me.main_service.controller.admin.AdminCategoryController;
+
 import ru.practicum.explore_with_me.main_service.model.rest_dto.category.CategoryRestView;
 import ru.practicum.explore_with_me.main_service.service.CategoryService;
 
@@ -26,7 +26,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@WebMvcTest(controllers = AdminCategoryController.class)
+@WebMvcTest(controllers = PublicCategoryController.class)
 public class PublicCategoryControllerTest {
     @Autowired
     ObjectMapper objectMapper;
@@ -54,7 +54,7 @@ public class PublicCategoryControllerTest {
                 .andExpect(jsonPath("$", is(objectMapper.readValue(
                         objectMapper.writeValueAsString(listOfCategories), List.class))));
 
-        mvc.perform(get("/admin/categories")
+        mvc.perform(get("/categories")
                         .characterEncoding(StandardCharsets.UTF_8)
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON))
@@ -102,17 +102,27 @@ public class PublicCategoryControllerTest {
 
     @Test
     public void getCategoryById_whenGetCorrectParameter_thenReturnOkStatus() throws Exception {
-        mvc.perform(delete("/categories/{category_id}", "1")
+        when(categoryService.getCategoryById(Mockito.anyLong()))
+                .thenReturn(CategoryRestView.builder()
+                        .id(1L)
+                        .name("category")
+                        .build());
+
+        mvc.perform(get("/categories/{category_id}", "1")
                         .characterEncoding(StandardCharsets.UTF_8)
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isNoContent());
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id", is(1)))
+                .andExpect(jsonPath("$.name", is("category")));
     }
 
     @ParameterizedTest
     @ValueSource(strings = {"1L", "0.1234", "foo", "0.1234F", " ", "\n", "\r", "\t", "true"})
     public void getCategoryById_whenGetIncorrectParameter_thenThrowException(String value) throws Exception {
-        mvc.perform(delete("/categories/{category_id}", value)
+
+
+        mvc.perform(get("/categories/{category_id}", value)
                         .characterEncoding(StandardCharsets.UTF_8)
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON))
