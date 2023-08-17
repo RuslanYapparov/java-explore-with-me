@@ -1,9 +1,9 @@
 package ru.practicum.explore_with_me.main_service.util;
 
-import lombok.experimental.UtilityClass;
-import org.springframework.boot.web.client.RestTemplateBuilder;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 
+import org.springframework.stereotype.Component;
 import ru.practicum.explore_with_me.main_service.exception.StatsServiceProblemException;
 import ru.practicum.explore_with_me.stats_service.client_submodule.StatsClient;
 import ru.practicum.explore_with_me.stats_service.dto_submodule.dto.EwmConstants;
@@ -12,11 +12,12 @@ import ru.practicum.explore_with_me.stats_service.dto_submodule.dto.UriStatRestV
 
 import java.time.LocalDateTime;
 
-@UtilityClass
+@Component
+@RequiredArgsConstructor
 public class StatsServiceIntegrator {
-    private static final StatsClient statsClient = new StatsClient(new RestTemplateBuilder());
+    private final StatsClient statsClient;
 
-    public static void saveStatHitFromThisRequests(String ip, String uri) {
+    public void saveStatHitFromThisRequests(String ip, String uri) {
         ResponseEntity<HitRestView> statsServiceResponse = statsClient.addNewHit(ip, uri);
         HitRestView hitUri = statsServiceResponse.getBody();
         if (hitUri == null) {
@@ -28,7 +29,7 @@ public class StatsServiceIntegrator {
         }  // Клиент записывает информацию об ошибке в поле application объекта HitRestView, если происходит ошибка
     }
 
-    public static UriStatRestView[] getUriStatsFromService(String[] uris) {
+    public UriStatRestView[] getUriStatsFromService(String[] uris) {
         ResponseEntity<UriStatRestView[]> statsServerResponse = statsClient.getUriStats(
                 EwmConstants.DEFAULT_DATE_TIME,
                 LocalDateTime.now(),
@@ -45,7 +46,7 @@ public class StatsServiceIntegrator {
         return uriStats;
     }
 
-    public static long getViewsForOneUri(String uri) {
+    public long getViewsForOneUri(String uri) {
         UriStatRestView[] uriStats = getUriStatsFromService(new String[] {uri});
         if (uriStats.length == 0) {
             return 0L;

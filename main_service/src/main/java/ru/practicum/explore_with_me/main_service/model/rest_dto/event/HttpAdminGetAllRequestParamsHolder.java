@@ -1,10 +1,12 @@
 package ru.practicum.explore_with_me.main_service.model.rest_dto.event;
 
+import lombok.Builder;
 import lombok.Value;
 import javax.validation.constraints.Positive;
 import javax.validation.constraints.PositiveOrZero;
 
 @Value
+@Builder
 public class HttpAdminGetAllRequestParamsHolder {
     long[] users;
     String[] states;

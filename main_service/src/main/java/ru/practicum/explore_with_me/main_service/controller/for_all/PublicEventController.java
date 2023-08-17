@@ -19,12 +19,13 @@ import java.util.List;
 @Slf4j
 public class PublicEventController {
     private final EventService eventService;
+    private final StatsServiceIntegrator statsServiceIntegrator;
 
     @GetMapping("{event_id}")
     public EventRestView getEventById(@PathVariable(name = "event_id") long eventId, HttpServletRequest request) {
         log.debug("New public request to get event with id'{}' was received", eventId);
         EventRestView event = eventService.getEventById(eventId);
-        StatsServiceIntegrator.saveStatHitFromThisRequests(request.getRemoteAddr(), request.getRequestURI());
+        statsServiceIntegrator.saveStatHitFromThisRequests(request.getRemoteAddr(), request.getRequestURI());
         return event;
     }
 
@@ -40,18 +41,20 @@ public class PublicEventController {
             @RequestParam(name = "from", defaultValue = "0") int from,
             @RequestParam(name = "size", defaultValue = "10") int size,
             HttpServletRequest request) {
-        HttpPublicGetAllRequestParamsHolder httpParams = new HttpPublicGetAllRequestParamsHolder(text,
-                categories,
-                paid,
-                rangeStart,
-                rangeEnd,
-                onlyAvailable,
-                sort,
-                from,
-                size);
+        HttpPublicGetAllRequestParamsHolder httpParams = HttpPublicGetAllRequestParamsHolder.builder()
+                .text(text)
+                .categories(categories)
+                .paid(paid)
+                .rangeStart(rangeStart)
+                .rangeEnd(rangeEnd)
+                .onlyAvailable(onlyAvailable)
+                .sort(sort)
+                .from(from)
+                .size(size)
+                .build();
         log.debug("New public request to get events with parameters '{}' was received", httpParams);
         List<EventRestViewShort> events = eventService.getAllEventsByParametersForAnyone(httpParams);
-        StatsServiceIntegrator.saveStatHitFromThisRequests(request.getRemoteAddr(), request.getRequestURI());
+        statsServiceIntegrator.saveStatHitFromThisRequests(request.getRemoteAddr(), request.getRequestURI());
         return events;
     }
 

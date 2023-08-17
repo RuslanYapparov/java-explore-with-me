@@ -38,7 +38,7 @@ public class PrivateEventController {
 
     @GetMapping("{event_id}")
     public EventRestView getEventOfUserById(@PathVariable(name = "user_id") long userId,
-                                                       @PathVariable(name = "event_id") long eventId) {
+                                            @PathVariable(name = "event_id") long eventId) {
         log.debug("New request from user with id'{}' for his event with id'{}' was received", userId, eventId);
         return eventService.getEventOfUserById(userId, eventId);
     }

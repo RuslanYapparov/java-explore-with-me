@@ -11,7 +11,10 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
 import ru.practicum.explore_with_me.main_service.controller.admin.UserController;
+import ru.practicum.explore_with_me.main_service.exception.BadRequestBodyException;
+import ru.practicum.explore_with_me.main_service.exception.BadRequestParameterException;
 import ru.practicum.explore_with_me.main_service.exception.ObjectNotFoundException;
+import ru.practicum.explore_with_me.main_service.exception.StatsServiceProblemException;
 import ru.practicum.explore_with_me.main_service.model.rest_dto.user.UserRestCommand;
 import ru.practicum.explore_with_me.main_service.service.CategoryService;
 import ru.practicum.explore_with_me.main_service.service.EventService;
@@ -57,6 +60,63 @@ public class ExploreWithMeExceptionHandlerTest {
                 .andExpect(jsonPath("$.status", is("NOT_FOUND")))
                 .andExpect(jsonPath("$.reason", is("There is no saved object with specified id.")))
                 .andExpect(jsonPath("$.message", is("not_found")));
+
+        verify(userService, Mockito.times(1))
+                .saveNewUser(Mockito.any(UserRestCommand.class));
+    }
+
+    @Test
+    public void handleBadRequestParameterException_whenServiceThrows_thenReturnErrorResponse() throws Exception {
+        when(userService.saveNewUser(Mockito.any())).thenThrow(new BadRequestParameterException("bad_request_parameter"));
+
+        mvc.perform(post("/admin/users")
+                        .content(objectMapper.writeValueAsString(UserRestCommand.builder().build()))
+                        .characterEncoding(StandardCharsets.UTF_8)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.status", is("BAD_REQUEST")))
+                .andExpect(jsonPath("$.reason", is("Http request was made with error(s).")))
+                .andExpect(jsonPath("$.message", is("bad_request_parameter")));
+
+        verify(userService, Mockito.times(1))
+                .saveNewUser(Mockito.any(UserRestCommand.class));
+    }
+
+    @Test
+    public void handleBadRequestBodyException_whenServiceThrows_thenReturnErrorResponse() throws Exception {
+        when(userService.saveNewUser(Mockito.any())).thenThrow(new BadRequestBodyException("bad_request_body"));
+
+        mvc.perform(post("/admin/users")
+                        .content(objectMapper.writeValueAsString(UserRestCommand.builder().build()))
+                        .characterEncoding(StandardCharsets.UTF_8)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.status", is("FORBIDDEN")))
+                .andExpect(jsonPath("$.reason",
+                        is("For the requested operation the conditions are not met.")))
+                .andExpect(jsonPath("$.message", is("bad_request_body")));
+
+        verify(userService, Mockito.times(1))
+                .saveNewUser(Mockito.any(UserRestCommand.class));
+    }
+
+    @Test
+    public void handleStatsServiceProblemException_whenServiceThrows_thenReturnErrorResponse() throws Exception {
+        when(userService.saveNewUser(Mockito.any())).thenThrow(
+                new StatsServiceProblemException("stats_service_problem"));
+
+        mvc.perform(post("/admin/users")
+                        .content(objectMapper.writeValueAsString(UserRestCommand.builder().build()))
+                        .characterEncoding(StandardCharsets.UTF_8)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isInternalServerError())
+                .andExpect(jsonPath("$.status", is("SERVICE_UNAVAILABLE")))
+                .andExpect(jsonPath("$.reason",
+                        is("There is problem with getting information from Stats_service (see message).")))
+                .andExpect(jsonPath("$.message", is("stats_service_problem")));
 
         verify(userService, Mockito.times(1))
                 .saveNewUser(Mockito.any(UserRestCommand.class));

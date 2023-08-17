@@ -19,7 +19,7 @@ public class AdminEventsController {
     private final EventService eventService;
 
     @GetMapping
-    public List<EventRestView> saveNewUser(
+    public List<EventRestView> getAllEventsByParameter(
             @RequestParam(name = "users", required = false) long[] users,
             @RequestParam(name = "states", required = false) String[] states,
             @RequestParam(name = "categories", required = false) long[] categories,
@@ -27,13 +27,15 @@ public class AdminEventsController {
             @RequestParam(name = "rangeEnd", required = false) String rangeEnd,
             @RequestParam(name = "from", defaultValue = "0") int from,
             @RequestParam(name = "size", defaultValue = "10") int size) {
-        HttpAdminGetAllRequestParamsHolder httpParams = new HttpAdminGetAllRequestParamsHolder(users,
-                states,
-                categories,
-                rangeStart,
-                rangeEnd,
-                from,
-                size);
+        HttpAdminGetAllRequestParamsHolder httpParams = HttpAdminGetAllRequestParamsHolder.builder()
+                .users(users)
+                .states(states)
+                .categories(categories)
+                .rangeStart(rangeStart)
+                .rangeEnd(rangeEnd)
+                .from(from)
+                .size(size)
+                .build();
         log.debug("New admin request to get events with parameters '{}' was received", httpParams);
         return eventService.getAllEventsByParametersForAdmin(httpParams);
     }

@@ -14,7 +14,7 @@ import java.util.*;
 @UtilityClass
 public class DatabaseQueryCreator {
 
-    public static BooleanExpression prepareConditionsForPublicQuery(JpaPublicGetAllQueryParamsHolder paramsHolder) {
+    public static BooleanExpression prepareConditionsForQuery(JpaPublicGetAllQueryParamsHolder paramsHolder) {
         QEventEntity qEventEntity = QEventEntity.eventEntity;
         List<BooleanExpression> conditions = new ArrayList<>();
         conditions.add(qEventEntity.state.like(EventState.PUBLISHED.name()));
@@ -45,7 +45,7 @@ public class DatabaseQueryCreator {
         return makeFinalCondition(conditions);
     }
 
-    public static BooleanExpression prepareConditionsForPublicQuery(JpaAdminGetAllQueryParamsHolder paramsHolder) {
+    public static BooleanExpression prepareConditionsForQuery(JpaAdminGetAllQueryParamsHolder paramsHolder) {
         QEventEntity qEventEntity = QEventEntity.eventEntity;
         List<BooleanExpression> conditions = new ArrayList<>();
         long[] users = paramsHolder.getUsers();
@@ -58,7 +58,7 @@ public class DatabaseQueryCreator {
         }
         String[] states = paramsHolder.getStates();
         if (states != null) {
-            Arrays.stream(states).forEach(state -> conditions.add(qEventEntity.state.likeIgnoreCase(state)));
+            conditions.add(qEventEntity.state.in(new ArrayList<>(Arrays.asList(states))));
         }
         LocalDateTime rangeStart = paramsHolder.getRangeStart();
         if (rangeStart != null) {

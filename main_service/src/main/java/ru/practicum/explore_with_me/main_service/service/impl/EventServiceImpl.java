@@ -50,6 +50,7 @@ public class EventServiceImpl implements EventService {
     private final UserRepository userRepository;
     private final CategoryRepository categoryRepository;
     private final EventMapper eventMapper;
+    private final StatsServiceIntegrator statsServiceIntegrator;
 
     @Override
     public EventRestView saveNewEvent(@Positive long userId, @Valid EventRestCommand eventRestCommand) {
@@ -72,14 +73,13 @@ public class EventServiceImpl implements EventService {
 
     @Override
     public EventRestView getEventById(@Positive long eventId) {
-        EventEntity eventEntity = eventRepository.findById(eventId).orElseThrow(() ->  new ObjectNotFoundException(
-                "Failed to get event: event with id'" + eventId + "' was not saved"));
+        EventEntity eventEntity = getEventEntityIfExists(eventId);
         if (!EventState.PUBLISHED.name().equals(eventEntity.getState())) {
             throw new ObjectNotFoundException("Requested event with id'" + eventId + "' not published");
         }
 
         Event event = eventMapper.fromDbEntity(eventEntity).toBuilder()
-                .views(StatsServiceIntegrator.getViewsForOneUri("/events/" + eventId))
+                .views(statsServiceIntegrator.getViewsForOneUri("/events/" + eventId))
                 .build();
         log.info("Event {} was sent to client", event);
         return eventMapper.toRestView(event);
@@ -95,7 +95,7 @@ public class EventServiceImpl implements EventService {
         }
 
         Event event = eventMapper.fromDbEntity(eventEntity).toBuilder()
-                .views(StatsServiceIntegrator.getViewsForOneUri("/events/" + eventId))
+                .views(statsServiceIntegrator.getViewsForOneUri("/events/" + eventId))
                 .build();
         log.info("{} was sent to its initiator with id'{}'", event, userId);
         return eventMapper.toRestView(event);
@@ -106,8 +106,8 @@ public class EventServiceImpl implements EventService {
             @Valid HttpPublicGetAllRequestParamsHolder httpParams) {
         JpaPublicGetAllQueryParamsHolder paramsHolder = MethodParameterValidator
                 .getValidJpaQueryParamsFromHttpRequest(httpParams);
-        BooleanExpression preparedConditions = DatabaseQueryCreator.prepareConditionsForPublicQuery(paramsHolder);
-        Sort sort = Sort.by(Sort.Direction.ASC, "eventDate");
+        BooleanExpression preparedConditions = DatabaseQueryCreator.prepareConditionsForQuery(paramsHolder);
+        Sort sort = Sort.by(Sort.Direction.ASC, "eventDate", "id");
         Pageable page = PageRequest.of(paramsHolder.getFrom(), paramsHolder.getSize(), sort);
         List<EventEntity> eventsEntities = eventRepository.findAll(preparedConditions, page).getContent();
         if (eventsEntities.size() == 0) {
@@ -151,7 +151,7 @@ public class EventServiceImpl implements EventService {
     public List<EventRestView> getAllEventsByParametersForAdmin(@Valid HttpAdminGetAllRequestParamsHolder httpParams) {
         JpaAdminGetAllQueryParamsHolder paramsHolder = MethodParameterValidator
                 .getValidJpaQueryParamsFromHttpRequest(httpParams);
-        BooleanExpression preparedConditions = DatabaseQueryCreator.prepareConditionsForPublicQuery(paramsHolder);
+        BooleanExpression preparedConditions = DatabaseQueryCreator.prepareConditionsForQuery(paramsHolder);
         Sort sort = Sort.by(Sort.Direction.ASC, "id");
         Pageable page = PageRequest.of(paramsHolder.getFrom(), paramsHolder.getSize(), sort);
         List<EventEntity> eventsEntities = eventRepository.findAll(preparedConditions, page).getContent();
@@ -181,7 +181,7 @@ public class EventServiceImpl implements EventService {
         eventEntity = updateEventEntityInformationFromRestCommand(eventEntity, eventRestCommand, false);
         eventEntity = eventRepository.save(eventEntity);
         Event event = eventMapper.fromDbEntity(eventEntity).toBuilder()
-                .views(StatsServiceIntegrator.getViewsForOneUri("/events/" + eventId))
+                .views(statsServiceIntegrator.getViewsForOneUri("/events/" + eventId))
                 .build();
         log.info("User with id'{}' updated his event with id'{}'. Updated {}", userId, eventId, event);
         return eventMapper.toRestView(event);
@@ -195,7 +195,7 @@ public class EventServiceImpl implements EventService {
         eventEntity = updateEventEntityInformationFromRestCommand(eventEntity, eventRestCommand, true);
         eventEntity = eventRepository.save(eventEntity);
         Event event = eventMapper.fromDbEntity(eventEntity).toBuilder()
-                .views(StatsServiceIntegrator.getViewsForOneUri("/events/" + eventId))
+                .views(statsServiceIntegrator.getViewsForOneUri("/events/" + eventId))
                 .build();
         log.info("Admin updated event with id'{}'. Updated {}", eventId, event);
         return eventMapper.toRestView(event);
@@ -222,7 +222,7 @@ public class EventServiceImpl implements EventService {
                 .map(entityId -> "/events/" + entityId)
                 .collect(Collectors.toList()).toArray(new String[] {});
         Map<Long, Long> viewsStatistics = new HashMap<>();
-        Arrays.stream(StatsServiceIntegrator.getUriStatsFromService(uris))
+        Arrays.stream(statsServiceIntegrator.getUriStatsFromService(uris))
                 .filter(uriStat -> !(uriStat.getUri().equals("/events")))
                 .forEach(uriStat -> {
                     long eventId;
