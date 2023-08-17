@@ -10,7 +10,10 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import javax.validation.ConstraintViolationException;
 
+import ru.practicum.explore_with_me.main_service.exception.BadRequestBodyException;
+import ru.practicum.explore_with_me.main_service.exception.BadRequestParameterException;
 import ru.practicum.explore_with_me.main_service.exception.ObjectNotFoundException;
+import ru.practicum.explore_with_me.main_service.exception.StatsServiceProblemException;
 import ru.practicum.explore_with_me.main_service.model.rest_dto.ErrorResponse;
 
 import java.time.LocalDateTime;
@@ -26,6 +29,43 @@ public class ExploreWithMeExceptionHandler {
         return ErrorResponse.builder()
                 .status(HttpStatus.NOT_FOUND)
                 .reason("There is no saved object with specified id.")
+                .message(exception.getMessage())
+                .timestamp(LocalDateTime.now())
+                .build();
+    }
+
+    @ExceptionHandler(BadRequestParameterException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ErrorResponse handleBadRequestParameterException(BadRequestParameterException exception) {
+        log.warn(exception.getMessage());
+        return ErrorResponse.builder()
+                .status(HttpStatus.BAD_REQUEST)
+                .reason("Http request was made with error(s).")
+                .message(exception.getMessage())
+                .timestamp(LocalDateTime.now())
+                .build();
+    }
+
+    @ExceptionHandler(BadRequestBodyException.class)
+    @ResponseStatus(HttpStatus.CONFLICT)
+    public ErrorResponse handleBadRequestBodyException(BadRequestBodyException exception) {
+        log.warn(exception.getMessage());
+        return ErrorResponse.builder()
+                .status(HttpStatus.FORBIDDEN) // В соответствии со спецификацией, в поле статус должно быть это значение
+                // При этом код http-ответа должен быть 409
+                .reason("For the requested operation the conditions are not met.")
+                .message(exception.getMessage())
+                .timestamp(LocalDateTime.now())
+                .build();
+    }
+
+    @ExceptionHandler(StatsServiceProblemException.class)
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    public ErrorResponse handleStatsServiceProblemException(StatsServiceProblemException exception) {
+        log.warn(exception.getMessage());
+        return ErrorResponse.builder()
+                .status(HttpStatus.SERVICE_UNAVAILABLE)
+                .reason("There is problem with getting information from Stats_service (see message).")
                 .message(exception.getMessage())
                 .timestamp(LocalDateTime.now())
                 .build();
@@ -67,7 +107,7 @@ public class ExploreWithMeExceptionHandler {
         log.warn(HttpMessageNotReadableException.class + ": " + exception.getMessage());
         return ErrorResponse.builder()
                 .status(HttpStatus.BAD_REQUEST)
-                .reason("Failed to read request body (content is incorrect)")
+                .reason("Failed to read request body (content is incorrect).")
                 .message(exception.getMessage())
                 .timestamp(LocalDateTime.now())
                 .build();

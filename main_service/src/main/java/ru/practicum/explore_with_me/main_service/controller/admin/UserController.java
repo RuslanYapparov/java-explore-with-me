@@ -31,7 +31,7 @@ public class UserController {
                                             @RequestParam(name = "size", defaultValue = "10") int size) {
         log.debug("New request for page of users with size '{}' from index '{}' was received. " +
                 "Requested users ids: {}", size, from, ids);
-        return userService.getUsersByIds(ids, from, size).toList();
+        return userService.getUsersByIds(ids, from, size);
     }
 
     @DeleteMapping("{user_id}")

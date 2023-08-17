@@ -8,15 +8,17 @@ import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
 import ru.practicum.explore_with_me.main_service.model.rest_dto.category.CategoryRestView;
 import ru.practicum.explore_with_me.main_service.service.CategoryService;
+import ru.practicum.explore_with_me.main_service.service.EventService;
+import ru.practicum.explore_with_me.main_service.service.UserService;
+import ru.practicum.explore_with_me.stats_service.client_submodule.StatsClient;
 
 import java.nio.charset.StandardCharsets;
+import java.util.Collections;
 import java.util.List;
 
 import static org.hamcrest.Matchers.is;
@@ -32,6 +34,12 @@ public class PublicCategoryControllerTest {
     ObjectMapper objectMapper;
     @MockBean
     CategoryService categoryService;
+    @MockBean
+    UserService userService;
+    @MockBean
+    EventService eventService;
+    @MockBean
+    StatsClient statsClient;
     @Autowired
     private MockMvc mvc;
 
@@ -42,7 +50,7 @@ public class PublicCategoryControllerTest {
                 .name("category")
                 .build());
         when(categoryService.getAllCategories(Mockito.anyInt(), Mockito.anyInt()))
-                .thenReturn(new PageImpl<>(listOfCategories));
+                .thenReturn(listOfCategories);
 
         mvc.perform(get("/categories")
                         .param("from", "0")
@@ -70,7 +78,7 @@ public class PublicCategoryControllerTest {
     @ValueSource(strings = {"1L", "0.1234", "foo", "0.1234F", "/", " ", "\n", "\r", "\t", "true"})
     public void getCategoriesByIds_whenGetIncorrectRequestParameters_thenThrowException(String value) throws Exception {
         when(categoryService.getAllCategories(Mockito.anyInt(), Mockito.anyInt()))
-                .thenReturn(Page.empty());
+                .thenReturn(Collections.emptyList());
 
         mvc.perform(get("/categories")
                         .param("from", value)

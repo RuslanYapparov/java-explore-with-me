@@ -9,13 +9,14 @@ import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.dao.DataIntegrityViolationException;
-import org.springframework.data.domain.Page;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.explore_with_me.main_service.exception.ObjectNotFoundException;
 import ru.practicum.explore_with_me.main_service.model.rest_dto.category.CategoryRestCommand;
 import ru.practicum.explore_with_me.main_service.model.rest_dto.category.CategoryRestView;
 
 import javax.validation.ConstraintViolationException;
+
+import java.util.List;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
@@ -113,18 +114,18 @@ public class CategoryServiceTest {
 
     @Test
     public void getAllCategories_whenGetCorrectParameters_thenReturnPageOfCategories() {
-        Page<CategoryRestView> pageOfCategories = categoryService.getAllCategories(0, 10);
+        List<CategoryRestView> pageOfCategories = categoryService.getAllCategories(0, 10);
         assertThat(pageOfCategories, notNullValue());
         assertThat(pageOfCategories, iterableWithSize(2));
-        assertThat(pageOfCategories.getContent().get(0), equalTo(firstCategory));
-        assertThat(pageOfCategories.getContent().get(1), equalTo(secondCategory));
+        assertThat(pageOfCategories.get(0), equalTo(firstCategory));
+        assertThat(pageOfCategories.get(1), equalTo(secondCategory));
 
         categoryService.saveNewCategory(initializeCategoryRestCommand("category_3"));
 
         pageOfCategories = categoryService.getAllCategories(0, 10);
         assertThat(pageOfCategories, iterableWithSize(3));
-        assertThat(pageOfCategories.getContent().get(0), equalTo(firstCategory));
-        assertThat(pageOfCategories.getContent().get(2).getName(), equalTo("category_3"));
+        assertThat(pageOfCategories.get(0), equalTo(firstCategory));
+        assertThat(pageOfCategories.get(2).getName(), equalTo("category_3"));
     }
 
     @ParameterizedTest
@@ -164,9 +165,9 @@ public class CategoryServiceTest {
     @Test
     public void deleteCategoryById_whenGetCorrectParameters_thenDeleteCategory() {
         categoryService.deleteCategoryById(firstCategory.getId());
-        Page<CategoryRestView> allCategories = categoryService.getAllCategories(0, 5);
+        List<CategoryRestView> allCategories = categoryService.getAllCategories(0, 5);
         assertThat(allCategories, iterableWithSize(1));
-        assertThat(allCategories.getContent().get(0), equalTo(secondCategory));
+        assertThat(allCategories.get(0), equalTo(secondCategory));
     }
 
     @ParameterizedTest

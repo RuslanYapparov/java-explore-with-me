@@ -19,7 +19,7 @@ public class PublicCategoryController {
     public List<CategoryRestView> getAllCategories(@RequestParam(name = "from", defaultValue = "0") int from,
                                                   @RequestParam(name = "size", defaultValue = "10") int size) {
         log.debug("New request for page of categories with size '{}' from index '{}' was received", size, from);
-        return categoryService.getAllCategories(from, size).toList();
+        return categoryService.getAllCategories(from, size);
     }
 
     @GetMapping("{category_id}")

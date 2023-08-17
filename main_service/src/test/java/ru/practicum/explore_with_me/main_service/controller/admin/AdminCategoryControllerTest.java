@@ -13,6 +13,9 @@ import org.springframework.test.web.servlet.MockMvc;
 import ru.practicum.explore_with_me.main_service.model.rest_dto.category.CategoryRestCommand;
 import ru.practicum.explore_with_me.main_service.model.rest_dto.category.CategoryRestView;
 import ru.practicum.explore_with_me.main_service.service.CategoryService;
+import ru.practicum.explore_with_me.main_service.service.EventService;
+import ru.practicum.explore_with_me.main_service.service.UserService;
+import ru.practicum.explore_with_me.stats_service.client_submodule.StatsClient;
 
 import java.nio.charset.StandardCharsets;
 
@@ -29,6 +32,12 @@ public class AdminCategoryControllerTest {
     ObjectMapper objectMapper;
     @MockBean
     CategoryService categoryService;
+    @MockBean
+    UserService userService;
+    @MockBean
+    EventService eventService;
+    @MockBean
+    StatsClient statsClient;
     @Autowired
     private MockMvc mvc;
 
@@ -70,7 +79,7 @@ public class AdminCategoryControllerTest {
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.status", is("BAD_REQUEST")))
                 .andExpect(jsonPath("$.reason", is(
-                        "Failed to read request body (content is incorrect)")))
+                        "Failed to read request body (content is incorrect).")))
                 .andExpect(jsonPath("$.message", is("Required request body is missing: public " +
                         "ru.practicum.explore_with_me.main_service.model.rest_dto.category.CategoryRestView " +
                         "ru.practicum.explore_with_me.main_service.controller.admin.AdminCategoryController" +
@@ -85,7 +94,7 @@ public class AdminCategoryControllerTest {
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.status", is("BAD_REQUEST")))
                 .andExpect(jsonPath("$.reason", is(
-                        "Failed to read request body (content is incorrect)")))
+                        "Failed to read request body (content is incorrect).")))
                 .andExpect(jsonPath("$.message", is("JSON parse error: Unrecognized token 'potato': " +
                         "was expecting (JSON String, Number, Array, Object or token 'null', 'true' or 'false'); " +
                         "nested exception is com.fasterxml.jackson.core.JsonParseException: Unrecognized token 'potato':" +
@@ -135,7 +144,7 @@ public class AdminCategoryControllerTest {
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.status", is("BAD_REQUEST")))
                 .andExpect(jsonPath("$.reason", is(
-                        "Failed to read request body (content is incorrect)")))
+                        "Failed to read request body (content is incorrect).")))
                 .andExpect(jsonPath("$.message", is("Required request body is missing: public " +
                         "ru.practicum.explore_with_me.main_service.model.rest_dto.category.CategoryRestView " +
                         "ru.practicum.explore_with_me.main_service.controller.admin.AdminCategoryController" +
@@ -150,7 +159,7 @@ public class AdminCategoryControllerTest {
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.status", is("BAD_REQUEST")))
                 .andExpect(jsonPath("$.reason", is(
-                        "Failed to read request body (content is incorrect)")))
+                        "Failed to read request body (content is incorrect).")))
                 .andExpect(jsonPath("$.message", is("JSON parse error: Unrecognized token 'potato': " +
                         "was expecting (JSON String, Number, Array, Object or token 'null', 'true' or 'false'); " +
                         "nested exception is com.fasterxml.jackson.core.JsonParseException: Unrecognized token 'potato':" +

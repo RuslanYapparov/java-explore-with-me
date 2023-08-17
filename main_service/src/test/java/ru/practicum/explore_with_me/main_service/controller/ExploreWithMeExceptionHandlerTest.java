@@ -13,7 +13,10 @@ import org.springframework.test.web.servlet.MockMvc;
 import ru.practicum.explore_with_me.main_service.controller.admin.UserController;
 import ru.practicum.explore_with_me.main_service.exception.ObjectNotFoundException;
 import ru.practicum.explore_with_me.main_service.model.rest_dto.user.UserRestCommand;
+import ru.practicum.explore_with_me.main_service.service.CategoryService;
+import ru.practicum.explore_with_me.main_service.service.EventService;
 import ru.practicum.explore_with_me.main_service.service.UserService;
+import ru.practicum.explore_with_me.stats_service.client_submodule.StatsClient;
 
 import javax.validation.ConstraintViolationException;
 import java.nio.charset.StandardCharsets;
@@ -31,7 +34,13 @@ public class ExploreWithMeExceptionHandlerTest {
     @Autowired
     ObjectMapper objectMapper;
     @MockBean
+    CategoryService categoryService;
+    @MockBean
     UserService userService;
+    @MockBean
+    EventService eventService;
+    @MockBean
+    StatsClient statsClient;
     @Autowired
     private MockMvc mvc;
 

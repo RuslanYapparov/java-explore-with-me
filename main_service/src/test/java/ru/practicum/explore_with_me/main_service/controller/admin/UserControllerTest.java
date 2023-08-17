@@ -8,16 +8,18 @@ import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
 import ru.practicum.explore_with_me.main_service.model.rest_dto.user.UserRestCommand;
 import ru.practicum.explore_with_me.main_service.model.rest_dto.user.UserRestView;
+import ru.practicum.explore_with_me.main_service.service.CategoryService;
+import ru.practicum.explore_with_me.main_service.service.EventService;
 import ru.practicum.explore_with_me.main_service.service.UserService;
+import ru.practicum.explore_with_me.stats_service.client_submodule.StatsClient;
 
 import java.nio.charset.StandardCharsets;
+import java.util.Collections;
 import java.util.List;
 
 import static org.hamcrest.Matchers.*;
@@ -27,12 +29,18 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@WebMvcTest(controllers = UserController.class)
+@WebMvcTest(controllers = {UserController.class, AdminCategoryController.class})
 public class UserControllerTest {
     @Autowired
     ObjectMapper objectMapper;
     @MockBean
     UserService userService;
+    @MockBean
+    CategoryService categoryService;
+    @MockBean
+    EventService eventService;
+    @MockBean
+    StatsClient statsClient;
     @Autowired
     private MockMvc mvc;
 
@@ -77,7 +85,7 @@ public class UserControllerTest {
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.status", is("BAD_REQUEST")))
                 .andExpect(jsonPath("$.reason", is(
-                        "Failed to read request body (content is incorrect)")))
+                        "Failed to read request body (content is incorrect).")))
                 .andExpect(jsonPath("$.message", is("Required request body is missing: public " +
                         "ru.practicum.explore_with_me.main_service.model.rest_dto.user.UserRestView " +
                         "ru.practicum.explore_with_me.main_service.controller.admin.UserController.saveNewUser(" +
@@ -91,7 +99,7 @@ public class UserControllerTest {
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.status", is("BAD_REQUEST")))
                 .andExpect(jsonPath("$.reason", is(
-                        "Failed to read request body (content is incorrect)")))
+                        "Failed to read request body (content is incorrect).")))
                 .andExpect(jsonPath("$.message", is("JSON parse error: Unrecognized token 'potato': " +
                         "was expecting (JSON String, Number, Array, Object or token 'null', 'true' or 'false'); " +
                         "nested exception is com.fasterxml.jackson.core.JsonParseException: Unrecognized token 'potato':" +
@@ -111,7 +119,7 @@ public class UserControllerTest {
                 .email("user@email.com")
                 .build());
         when(userService.getUsersByIds(Mockito.any(), Mockito.anyInt(), Mockito.anyInt()))
-                .thenReturn(new PageImpl<>(listOfUsers));
+                .thenReturn(listOfUsers);
 
         mvc.perform(get("/admin/users")
                         .param("ids", "1, 2, 3")
@@ -140,7 +148,7 @@ public class UserControllerTest {
     @ValueSource(strings = {"1L", "0.1234", "foo", "0.1234F", "/", " ", "\n", "\r", "\t", "true"})
     public void getUsersByIds_whenGetIncorrectRequestParameters_thenThrowException(String value) throws Exception {
         when(userService.getUsersByIds(Mockito.any(), Mockito.anyInt(), Mockito.anyInt()))
-        .thenReturn(Page.empty());
+        .thenReturn(Collections.emptyList());
 
         mvc.perform(get("/admin/users")
                         .param("ids", value)

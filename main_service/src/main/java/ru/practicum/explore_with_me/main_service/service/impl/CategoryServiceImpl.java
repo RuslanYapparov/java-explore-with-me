@@ -21,6 +21,7 @@ import ru.practicum.explore_with_me.main_service.service.CategoryService;
 import javax.validation.Valid;
 import javax.validation.constraints.Positive;
 import javax.validation.constraints.PositiveOrZero;
+import java.util.List;
 
 @Service
 @Validated
@@ -39,12 +40,13 @@ public class CategoryServiceImpl implements CategoryService {
         return categoryMapper.toRestView(category);
     }
 
-    public Page<CategoryRestView> getAllCategories(@PositiveOrZero int from, @Positive int size) {
+    public List<CategoryRestView> getAllCategories(@PositiveOrZero int from, @Positive int size) {
         Pageable page = PageRequest.of(from / size, size, Sort.by(Sort.Direction.ASC, "id"));
         Page<CategoryEntity> categoriesPage = categoryRepository.findAll(page);
         log.info("Page of {} categories started with index {} was sent to the client",
                 categoriesPage.getTotalElements(), from);
-        return categoriesPage.map(categoryEntity -> categoryMapper.toRestView(categoryMapper.fromDbEntity(categoryEntity)));
+        return categoriesPage.map(categoryEntity ->
+                categoryMapper.toRestView(categoryMapper.fromDbEntity(categoryEntity))).toList();
     }
 
     public CategoryRestView getCategoryById(@Positive long categoryId) {

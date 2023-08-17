@@ -22,6 +22,7 @@ import ru.practicum.explore_with_me.main_service.repository.UserRepository;
 import ru.practicum.explore_with_me.main_service.service.UserService;
 
 import java.util.Arrays;
+import java.util.List;
 
 @Service
 @Validated
@@ -39,7 +40,7 @@ public class UserServiceImpl implements UserService {
         return userMapper.toRestView(user);
     }
 
-    public Page<UserRestView> getUsersByIds(long[] ids, @PositiveOrZero int from, @Positive int size) {
+    public List<UserRestView> getUsersByIds(long[] ids, @PositiveOrZero int from, @Positive int size) {
         Pageable page = PageRequest.of(from / size, size, Sort.by(Sort.Direction.ASC, "id"));
         Page<UserEntity> usersPage;
         if (ids.length == 1 && ids[0] == -1) {
@@ -50,7 +51,7 @@ public class UserServiceImpl implements UserService {
         }
         log.info("Page of {} users with identifiers {} was sent to the client.",
                 size, Arrays.copyOfRange(ids, from, size > ids.length ? ids.length : size));
-        return usersPage.map(userEntity -> userMapper.toRestView(userMapper.fromDbEntity(userEntity)));
+        return usersPage.map(userEntity -> userMapper.toRestView(userMapper.fromDbEntity(userEntity))).toList();
     }
 
     public void deleteUserById(@Positive long id) {

@@ -9,13 +9,14 @@ import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.dao.DataIntegrityViolationException;
-import org.springframework.data.domain.Page;
 import org.springframework.transaction.annotation.Transactional;
 import javax.validation.ConstraintViolationException;
 
 import ru.practicum.explore_with_me.main_service.exception.ObjectNotFoundException;
 import ru.practicum.explore_with_me.main_service.model.rest_dto.user.UserRestCommand;
 import ru.practicum.explore_with_me.main_service.model.rest_dto.user.UserRestView;
+
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -95,12 +96,12 @@ public class UserServiceTest {
 
     @Test
     public void getUsersByIds_whenGetCorrectParameters_thenReturnPageOfUsers() {
-        Page<UserRestView> pageOfUsers = userService.getUsersByIds(
+        List<UserRestView> pageOfUsers = userService.getUsersByIds(
                 new long[] {firstUser.getId(), secondUser.getId()}, 0, 10);
         assertThat(pageOfUsers, notNullValue());
         assertThat(pageOfUsers, iterableWithSize(2));
-        assertThat(pageOfUsers.getContent().get(0), equalTo(firstUser));
-        assertThat(pageOfUsers.getContent().get(1), equalTo(secondUser));
+        assertThat(pageOfUsers.get(0), equalTo(firstUser));
+        assertThat(pageOfUsers.get(1), equalTo(secondUser));
 
         assertThat(pageOfUsers, equalTo(userService.getUsersByIds(new long[] {-1L}, 0, 10)));
 
@@ -108,7 +109,7 @@ public class UserServiceTest {
 
         pageOfUsers = userService.getUsersByIds(new long[] {-1L, 37582L, -4893L, 0L, secondUser.getId()}, 0, 10);
         assertThat(pageOfUsers, iterableWithSize(1));
-        assertThat(pageOfUsers.getContent().get(0), equalTo(secondUser));
+        assertThat(pageOfUsers.get(0), equalTo(secondUser));
     }
 
     @ParameterizedTest
@@ -127,9 +128,9 @@ public class UserServiceTest {
     @Test
     public void deleteUserById_whenGetCorrectParameters_thenDeleteUser() {
         userService.deleteUserById(firstUser.getId());
-        Page<UserRestView> allUsers = userService.getUsersByIds(new long[] {-1}, 0, 5);
+        List<UserRestView> allUsers = userService.getUsersByIds(new long[] {-1}, 0, 5);
         assertThat(allUsers, iterableWithSize(1));
-        assertThat(allUsers.getContent().get(0), equalTo(secondUser));
+        assertThat(allUsers.get(0), equalTo(secondUser));
     }
 
     @ParameterizedTest
