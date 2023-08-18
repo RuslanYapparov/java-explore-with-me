@@ -12,7 +12,7 @@ import java.time.LocalDateTime;
 import java.util.*;
 
 @UtilityClass
-public class DatabaseQueryCreator {
+public class QueryDslExpressionCreator {
 
     public static BooleanExpression prepareConditionsForQuery(JpaPublicGetAllQueryParamsHolder paramsHolder) {
         QEventEntity qEventEntity = QEventEntity.eventEntity;

@@ -4,16 +4,20 @@ import lombok.experimental.UtilityClass;
 
 import ru.practicum.explore_with_me.main_service.exception.BadRequestBodyException;
 import ru.practicum.explore_with_me.main_service.exception.BadRequestParameterException;
+import ru.practicum.explore_with_me.main_service.model.db_entities.event.EventEntity;
 import ru.practicum.explore_with_me.main_service.model.domain_pojo.event.EventState;
 import ru.practicum.explore_with_me.main_service.model.domain_pojo.params_holder.JpaAdminGetAllQueryParamsHolder;
 import ru.practicum.explore_with_me.main_service.model.domain_pojo.params_holder.JpaPublicGetAllQueryParamsHolder;
 import ru.practicum.explore_with_me.main_service.model.domain_pojo.params_holder.SortBy;
+import ru.practicum.explore_with_me.main_service.model.domain_pojo.request.RequestStatus;
 import ru.practicum.explore_with_me.main_service.model.rest_dto.event.HttpAdminGetAllRequestParamsHolder;
 import ru.practicum.explore_with_me.main_service.model.rest_dto.event.HttpPublicGetAllRequestParamsHolder;
 import ru.practicum.explore_with_me.main_service.model.rest_dto.event.EventRestCommand;
 import ru.practicum.explore_with_me.main_service.model.rest_dto.event.StateAction;
+import ru.practicum.explore_with_me.main_service.model.rest_dto.request.RequestStatusSetRestCommand;
 import ru.practicum.explore_with_me.stats_service.dto_submodule.dto.EwmConstants;
 
+import java.math.BigInteger;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeParseException;
 import java.util.Arrays;
@@ -122,6 +126,47 @@ public class MethodParameterValidator {
                 .from(httpParams.getFrom())
                 .size(httpParams.getSize())
                 .build();
+    }
+
+    public static EventEntity getValidEventEntityToSaveRequest(EventEntity event) {
+        int participantLimit = event.getParticipantLimit();
+        int confirmedRequests = event.getConfirmedRequests();
+
+        if (!event.getState().equals(EventState.PUBLISHED.name())) {
+            throw new BadRequestBodyException("The event with id'" + event.getId() + "' is not published");
+        }
+        if (participantLimit == 0) {
+            event.setConfirmedRequests(confirmedRequests + 1);
+            return event;
+        } else if (confirmedRequests < participantLimit) {
+            if (!event.isRequestModeration()) {
+                event.setConfirmedRequests(confirmedRequests + 1);
+            }
+            return event;
+        } else {
+            throw new BadRequestBodyException("Event participant limit is reached");
+        }
+    }
+
+    public static void checkStatusCommandForSpecificLogic(RequestStatusSetRestCommand command) {
+        Arrays.stream(command.getRequestIds()).forEach(id -> {
+            if (id.compareTo(BigInteger.ZERO) <= 0) {
+                throw new BadRequestParameterException(String.format("There is negative or zero id'%d' " +
+                                "of request in the request", id));
+            }
+        });
+        String status = command.getStatus();
+        RequestStatus requestStatus;
+        try {
+            requestStatus = RequestStatus.valueOf(status);
+        } catch (IllegalArgumentException exception) {
+            throw new BadRequestParameterException(String.format("Failed to change status of requests: expected " +
+                    "one of %s, but was '%s'", Arrays.toString(RequestStatus.values()), status));
+        }
+        if (!RequestStatus.CONFIRMED.equals(requestStatus) && !RequestStatus.REJECTED.equals(requestStatus)) {
+            throw new BadRequestParameterException("Failed to change status of requests: status '" + requestStatus +
+                    "' not supported for this operation.");
+        }
     }
 
     private void checkDateTimeFromStringForSpecificLogic(String stringEventDate, boolean afterModeration) {

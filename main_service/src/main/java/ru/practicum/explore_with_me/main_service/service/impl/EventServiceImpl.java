@@ -32,7 +32,7 @@ import ru.practicum.explore_with_me.main_service.repository.CategoryRepository;
 import ru.practicum.explore_with_me.main_service.repository.EventRepository;
 import ru.practicum.explore_with_me.main_service.repository.UserRepository;
 import ru.practicum.explore_with_me.main_service.service.EventService;
-import ru.practicum.explore_with_me.main_service.util.DatabaseQueryCreator;
+import ru.practicum.explore_with_me.main_service.util.QueryDslExpressionCreator;
 import ru.practicum.explore_with_me.main_service.util.MethodParameterValidator;
 import ru.practicum.explore_with_me.main_service.util.StatsServiceIntegrator;
 import ru.practicum.explore_with_me.stats_service.dto_submodule.dto.EwmConstants;
@@ -106,7 +106,7 @@ public class EventServiceImpl implements EventService {
             @Valid HttpPublicGetAllRequestParamsHolder httpParams) {
         JpaPublicGetAllQueryParamsHolder paramsHolder = MethodParameterValidator
                 .getValidJpaQueryParamsFromHttpRequest(httpParams);
-        BooleanExpression preparedConditions = DatabaseQueryCreator.prepareConditionsForQuery(paramsHolder);
+        BooleanExpression preparedConditions = QueryDslExpressionCreator.prepareConditionsForQuery(paramsHolder);
         Sort sort = Sort.by(Sort.Direction.ASC, "eventDate", "id");
         Pageable page = PageRequest.of(paramsHolder.getFrom(), paramsHolder.getSize(), sort);
         List<EventEntity> eventsEntities = eventRepository.findAll(preparedConditions, page).getContent();
@@ -151,7 +151,7 @@ public class EventServiceImpl implements EventService {
     public List<EventRestView> getAllEventsByParametersForAdmin(@Valid HttpAdminGetAllRequestParamsHolder httpParams) {
         JpaAdminGetAllQueryParamsHolder paramsHolder = MethodParameterValidator
                 .getValidJpaQueryParamsFromHttpRequest(httpParams);
-        BooleanExpression preparedConditions = DatabaseQueryCreator.prepareConditionsForQuery(paramsHolder);
+        BooleanExpression preparedConditions = QueryDslExpressionCreator.prepareConditionsForQuery(paramsHolder);
         Sort sort = Sort.by(Sort.Direction.ASC, "id");
         Pageable page = PageRequest.of(paramsHolder.getFrom(), paramsHolder.getSize(), sort);
         List<EventEntity> eventsEntities = eventRepository.findAll(preparedConditions, page).getContent();

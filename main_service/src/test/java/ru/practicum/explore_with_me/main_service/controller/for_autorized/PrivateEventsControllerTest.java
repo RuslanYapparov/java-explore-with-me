@@ -15,6 +15,7 @@ import ru.practicum.explore_with_me.main_service.model.rest_dto.event.*;
 import ru.practicum.explore_with_me.main_service.model.rest_dto.user.UserShort;
 import ru.practicum.explore_with_me.main_service.service.CategoryService;
 import ru.practicum.explore_with_me.main_service.service.EventService;
+import ru.practicum.explore_with_me.main_service.service.RequestService;
 import ru.practicum.explore_with_me.main_service.service.UserService;
 import ru.practicum.explore_with_me.stats_service.client_submodule.StatsClient;
 import ru.practicum.explore_with_me.stats_service.dto_submodule.dto.EwmConstants;
@@ -39,6 +40,8 @@ public class PrivateEventsControllerTest {
     CategoryService categoryService;
     @MockBean
     UserService userService;
+    @MockBean
+    RequestService requestService;
     @MockBean
     StatsClient statsClient;
     @Autowired

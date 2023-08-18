@@ -9,6 +9,7 @@ import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.explore_with_me.main_service.exception.BadRequestBodyException;
@@ -521,6 +522,25 @@ public class EventServiceTest {
                 eventService.getAllEventsByUserId(firstUser.getId(), 0, 10));
         assertThat(exception.getMessage(), equalTo("Unsupported URI format found in response from " +
                 "Stats_service: /events/requests/57"));
+    }
+
+    @Test
+    public void saveNewEvent_whenGetDoubleInitiatorDateTitleTest_thenThrowException() {
+        DataIntegrityViolationException exception = assertThrows(DataIntegrityViolationException.class, () ->
+                eventService.saveNewEvent(firstUser.getId(), EventRestCommand.builder()
+                        .title("title_1")
+                        .annotation("annotation_of_first_event")
+                        .description("description_of_first_event")
+                        .eventDate(DEFAULT_EVENT_DATE.format(EwmConstants.FORMATTER))
+                        .category(category.getId())
+                        .location(DEFAULT_LOCATION)
+                        .paid(true)
+                        .requestModeration(false)
+                        .participantLimit(10)
+                        .build()));
+        assertThat(exception.getMessage(), equalTo("could not execute statement; SQL [n/a]; " +
+                "constraint [null]; nested exception is org.hibernate.exception.ConstraintViolationException: " +
+                "could not execute statement"));
     }
 
 }
