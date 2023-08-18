@@ -14,6 +14,7 @@ import ru.practicum.explore_with_me.main_service.model.db_entities.event.EventEn
 import ru.practicum.explore_with_me.main_service.model.domain_pojo.event.EventState;
 import ru.practicum.explore_with_me.main_service.model.domain_pojo.request.Request;
 import ru.practicum.explore_with_me.main_service.model.domain_pojo.request.RequestStatus;
+import ru.practicum.explore_with_me.main_service.model.rest_dto.request.ModeratedRequestsRestView;
 import ru.practicum.explore_with_me.main_service.model.rest_dto.request.RequestRestCommand;
 import ru.practicum.explore_with_me.main_service.model.rest_dto.request.RequestRestView;
 import ru.practicum.explore_with_me.main_service.model.rest_dto.request.RequestStatusSetRestCommand;
@@ -110,8 +111,8 @@ public class RequestServiceImpl implements RequestService {
     }
 
     @Override
-    public List<RequestRestView> setStatusToRequestsByInitiator(@Positive long userId, @Positive long eventId,
-                                                                @Valid RequestStatusSetRestCommand command) {
+    public ModeratedRequestsRestView setStatusToRequestsByInitiator(@Positive long userId, @Positive long eventId,
+                                                                    @Valid RequestStatusSetRestCommand command) {
         MethodParameterValidator.checkStatusCommandForSpecificLogic(command);
         UserEntity initiator = getUserEntityIfExists(userId);
         EventEntity event = getCheckedEventEntityIfExists(eventId, false);
@@ -123,37 +124,15 @@ public class RequestServiceImpl implements RequestService {
             throw new BadRequestParameterException(String.format("User with id'%d' is not initiator of event " +
                     "with id'%d'", userId, eventId));
         }
-        int participantLimit = event.getParticipantLimit();
-        int confirmedRequests = event.getConfirmedRequests();
-        BigInteger[] requestIds = command.getRequestIds();
+        List<RequestEntity> requests = getListOfUpdatedRequestEntities(event, command);
         RequestStatus status = RequestStatus.valueOf(command.getStatus());
-        List<RequestEntity> requests = new ArrayList<>();
-        if (participantLimit != 0 || event.isRequestModeration()) {
-            requests = requestRepository.findAllByIdIn(requestIds);
-            if (RequestStatus.CONFIRMED.equals(status) && confirmedRequests + requests.size() > participantLimit) {
-                throw new BadRequestBodyException(String.format("Too many requests to confirm: participant limit " +
-                        "is '%d', number of already confirmed requests is '%d', number of new confirmed requests " +
-                        "is '%d'", participantLimit, confirmedRequests, requests.size()));
-            }
-            requests.forEach(requestEntity -> {
-                if (RequestStatus.REJECTED.equals(status)) {
-                    if (RequestStatus.CONFIRMED.name().equals(requestEntity.getStatus())) {
-                        throw new BadRequestBodyException("Failed to cancel request with id'" + requestEntity.getId() +
-                                "': request was confirmed earlier");
-                    }
-                }
-                requestEntity.setStatus(status.name());
-                requestRepository.save(requestEntity);
-            });
-            if (RequestStatus.CONFIRMED.equals(status)) {
-                event.setConfirmedRequests(confirmedRequests + requests.size());
-                eventRepository.save(event);
-            }
-        }
+
         log.info("Status of requests with ids'" +
                 requests.stream().map(RequestEntity::getId).collect(Collectors.toList()) + "' was changed to '" +
                 status + "'");
-        return mapListOfRequestRestViewsFromRequestEntities(requests);
+        List<RequestEntity> allRequestsOfEvent = requestRepository.findAllByEventId(eventId);
+        return requestMapper.mapModeratedRequestsRestViewFromListOfRequests(
+                mapListOfRequestRestViewsFromRequestEntities(allRequestsOfEvent));
     }
 
     private EventEntity getCheckedEventEntityIfExists(long eventId, boolean isRequestSaving) {
@@ -176,6 +155,38 @@ public class RequestServiceImpl implements RequestService {
         return requestEntities.stream()
                 .map(requestEntity -> requestMapper.toRestView(requestMapper.fromDbEntity(requestEntity)))
                 .collect(Collectors.toList());
+    }
+
+    private List<RequestEntity> getListOfUpdatedRequestEntities(
+            EventEntity event, RequestStatusSetRestCommand command) {
+        List<RequestEntity> requests = new ArrayList<>();
+        int participantLimit = event.getParticipantLimit();
+        int confirmedRequests = event.getConfirmedRequests();
+        BigInteger[] requestIds = command.getRequestIds();
+        RequestStatus status = RequestStatus.valueOf(command.getStatus());
+        if (participantLimit != 0 && event.isRequestModeration()) {
+            requests = requestRepository.findAllByIdIn(requestIds);
+            if (RequestStatus.CONFIRMED.equals(status) && confirmedRequests + requests.size() > participantLimit) {
+                throw new BadRequestBodyException(String.format("Too many requests to confirm: participant limit " +
+                        "is '%d', number of already confirmed requests is '%d', number of new confirmed requests " +
+                        "is '%d'", participantLimit, confirmedRequests, requests.size()));
+            }
+            requests.forEach(requestEntity -> {
+                if (RequestStatus.REJECTED.equals(status)) {
+                    if (RequestStatus.CONFIRMED.name().equals(requestEntity.getStatus())) {
+                        throw new BadRequestBodyException("Failed to cancel request with id'" + requestEntity.getId() +
+                                "': request was confirmed earlier");
+                    }
+                }
+                requestEntity.setStatus(status.name());
+                requestRepository.save(requestEntity);
+            });
+            if (RequestStatus.CONFIRMED.equals(status)) {
+                event.setConfirmedRequests(confirmedRequests + requests.size());
+                eventRepository.save(event);
+            }
+        }
+        return requests;
     }
 
 }

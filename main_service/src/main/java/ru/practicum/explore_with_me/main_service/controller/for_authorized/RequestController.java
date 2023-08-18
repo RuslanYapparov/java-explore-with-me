@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
+import ru.practicum.explore_with_me.main_service.model.rest_dto.request.ModeratedRequestsRestView;
 import ru.practicum.explore_with_me.main_service.model.rest_dto.request.RequestRestCommand;
 import ru.practicum.explore_with_me.main_service.model.rest_dto.request.RequestRestView;
 import ru.practicum.explore_with_me.main_service.model.rest_dto.request.RequestStatusSetRestCommand;
@@ -53,9 +54,9 @@ public class RequestController {
     }
 
     @PatchMapping("/events/{event_id}/requests")
-    public List<RequestRestView> setStatusToRequestsByInitiator(@PathVariable(name = "user_id") long userId,
-                                                                @PathVariable(name = "event_id") long eventId,
-                                                                @RequestBody RequestStatusSetRestCommand command) {
+    public ModeratedRequestsRestView setStatusToRequestsByInitiator(@PathVariable(name = "user_id") long userId,
+                                                                    @PathVariable(name = "event_id") long eventId,
+                                                                    @RequestBody RequestStatusSetRestCommand command) {
         log.debug("New HTTP-request from user with id'{}' to change status of some requests " +
                 "for his event with id'{}' was received. Information about changes: {}", userId, eventId, command);
         return requestService.setStatusToRequestsByInitiator(userId, eventId, command);

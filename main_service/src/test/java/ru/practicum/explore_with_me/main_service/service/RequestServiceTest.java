@@ -144,4 +144,19 @@ public class RequestServiceTest {
                         Mockito.any(String[].class), Mockito.anyBoolean());
     }
 
+    @Test
+    public void setStatusToRequestsByInitiator_whenGetCorrectParameters_thenReturnModeratedRequestsRestView() {
+        ModeratedRequestsRestView result = requestService.setStatusToRequestsByInitiator(
+                firstUser.getId(), firstEvent.getId(), RequestStatusSetRestCommand.builder()
+                        .requestIds(new BigInteger[] {secondRequest.getId(), BigInteger.valueOf(987654321L)})
+                        .status(RequestStatus.CONFIRMED.name())
+                        .build());
+
+        assertThat(result, notNullValue());
+        assertThat(result.getRejected(), emptyIterable());
+        assertThat(result.getConfirmed(), emptyIterable());
+        firstEvent = eventService.getEventById(firstEvent.getId());
+        assertThat(firstEvent.getConfirmedRequests(), equalTo(1));
+    }
+
 }

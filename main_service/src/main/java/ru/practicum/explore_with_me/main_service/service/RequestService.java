@@ -1,5 +1,6 @@
 package ru.practicum.explore_with_me.main_service.service;
 
+import ru.practicum.explore_with_me.main_service.model.rest_dto.request.ModeratedRequestsRestView;
 import ru.practicum.explore_with_me.main_service.model.rest_dto.request.RequestRestCommand;
 import ru.practicum.explore_with_me.main_service.model.rest_dto.request.RequestRestView;
 import ru.practicum.explore_with_me.main_service.model.rest_dto.request.RequestStatusSetRestCommand;
@@ -19,7 +20,7 @@ public interface RequestService {
 
     List<RequestRestView> getAllRequestsToEventForInitiator(@Positive long userId, @Positive long eventId);
 
-    List<RequestRestView> setStatusToRequestsByInitiator(@Positive long userId, @Positive long eventId,
+    ModeratedRequestsRestView setStatusToRequestsByInitiator(@Positive long userId, @Positive long eventId,
                                                              @Valid RequestStatusSetRestCommand command);
 
 }
