@@ -11,10 +11,7 @@ import ru.practicum.explore_with_me.main_service.controller.for_authorized.Reque
 import ru.practicum.explore_with_me.main_service.model.domain_pojo.request.RequestStatus;
 import ru.practicum.explore_with_me.main_service.model.rest_dto.request.RequestRestCommand;
 import ru.practicum.explore_with_me.main_service.model.rest_dto.request.RequestRestView;
-import ru.practicum.explore_with_me.main_service.service.CategoryService;
-import ru.practicum.explore_with_me.main_service.service.EventService;
-import ru.practicum.explore_with_me.main_service.service.RequestService;
-import ru.practicum.explore_with_me.main_service.service.UserService;
+import ru.practicum.explore_with_me.main_service.service.*;
 import ru.practicum.explore_with_me.stats_service.client_submodule.StatsClient;
 import ru.practicum.explore_with_me.stats_service.dto_submodule.dto.EwmConstants;
 
@@ -38,6 +35,8 @@ public class RequestControllerTest {
     UserService userService;
     @MockBean
     EventService eventService;
+    @MockBean
+    CompilationService compilationService;
     @MockBean
     StatsClient statsClient;
     @Autowired

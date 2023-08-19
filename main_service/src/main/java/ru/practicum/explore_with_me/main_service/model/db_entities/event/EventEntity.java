@@ -3,15 +3,17 @@ package ru.practicum.explore_with_me.main_service.model.db_entities.event;
 import lombok.*;
 
 import ru.practicum.explore_with_me.main_service.model.db_entities.CategoryEntity;
+import ru.practicum.explore_with_me.main_service.model.db_entities.CompilationEntity;
 import ru.practicum.explore_with_me.main_service.model.db_entities.UserEntity;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
+import java.util.Set;
 
 @Entity
 @Table(name = "events")
 @NoArgsConstructor
-@EqualsAndHashCode
+@EqualsAndHashCode(exclude = { "compilations" })
 @Getter
 @Setter
 public class EventEntity {
@@ -49,5 +51,12 @@ public class EventEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "category_id")
     private CategoryEntity category;
+    @ManyToMany(fetch = FetchType.LAZY, cascade = { CascadeType.ALL })
+    @JoinTable(
+            name = "events_compilations",
+            joinColumns = { @JoinColumn(name = "event_id") },
+            inverseJoinColumns = { @JoinColumn(name = "compilation_id") }
+    )
+    private Set<CompilationEntity> compilations;
 
 }

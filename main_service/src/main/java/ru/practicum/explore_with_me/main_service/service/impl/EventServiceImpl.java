@@ -108,7 +108,7 @@ public class EventServiceImpl implements EventService {
                 .getValidJpaQueryParamsFromHttpRequest(httpParams);
         BooleanExpression preparedConditions = QueryDslExpressionCreator.prepareConditionsForQuery(paramsHolder);
         Sort sort = Sort.by(Sort.Direction.ASC, "eventDate", "id");
-        Pageable page = PageRequest.of(paramsHolder.getFrom(), paramsHolder.getSize(), sort);
+        Pageable page = PageRequest.of(paramsHolder.getFrom() / paramsHolder.getSize(), paramsHolder.getSize(), sort);
         List<EventEntity> eventsEntities = eventRepository.findAll(preparedConditions, page).getContent();
         if (eventsEntities.size() == 0) {
             return Collections.emptyList();
@@ -137,7 +137,7 @@ public class EventServiceImpl implements EventService {
     public List<EventRestViewShort> getAllEventsByUserId(@Positive long userId,
                                                          @PositiveOrZero int from,
                                                          @Positive int size) {
-        Pageable page = PageRequest.of(from, size, Sort.by(Sort.Direction.ASC, "id"));
+        Pageable page = PageRequest.of(from / size, size, Sort.by(Sort.Direction.ASC, "id"));
         Page<EventEntity> eventEntitiesPage = eventRepository.findAllByInitiatorId(userId, page);
         List<Event> events = mapEventEntitiesToEventsWithViews(eventEntitiesPage.getContent());
         log.info("List of {} events requested by user with id'{}' was sent to client. Page parameters: " +
@@ -153,7 +153,7 @@ public class EventServiceImpl implements EventService {
                 .getValidJpaQueryParamsFromHttpRequest(httpParams);
         BooleanExpression preparedConditions = QueryDslExpressionCreator.prepareConditionsForQuery(paramsHolder);
         Sort sort = Sort.by(Sort.Direction.ASC, "id");
-        Pageable page = PageRequest.of(paramsHolder.getFrom(), paramsHolder.getSize(), sort);
+        Pageable page = PageRequest.of(paramsHolder.getFrom() / paramsHolder.getSize(), paramsHolder.getSize(), sort);
         List<EventEntity> eventsEntities = eventRepository.findAll(preparedConditions, page).getContent();
         if (eventsEntities.size() == 0) {
             return Collections.emptyList();
@@ -213,7 +213,7 @@ public class EventServiceImpl implements EventService {
 
     private CategoryEntity getCategoryIfExists(long categoryId) {
         return categoryRepository.findById(categoryId).orElseThrow(() -> new ObjectNotFoundException(
-                "Failed to save/update/get event: specified category with id'" + categoryId + "' was not saved"));
+                "Failed to save/update/get event: category with id'" + categoryId + "' was not saved"));
     }
 
     private List<Event> mapEventEntitiesToEventsWithViews(List<EventEntity> entities) {

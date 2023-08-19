@@ -13,10 +13,7 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import ru.practicum.explore_with_me.main_service.model.rest_dto.user.UserRestCommand;
 import ru.practicum.explore_with_me.main_service.model.rest_dto.user.UserRestView;
-import ru.practicum.explore_with_me.main_service.service.CategoryService;
-import ru.practicum.explore_with_me.main_service.service.EventService;
-import ru.practicum.explore_with_me.main_service.service.RequestService;
-import ru.practicum.explore_with_me.main_service.service.UserService;
+import ru.practicum.explore_with_me.main_service.service.*;
 import ru.practicum.explore_with_me.stats_service.client_submodule.StatsClient;
 
 import java.nio.charset.StandardCharsets;
@@ -42,6 +39,8 @@ public class UserControllerTest {
     EventService eventService;
     @MockBean
     RequestService requestService;
+    @MockBean
+    CompilationService compilationService;
     @MockBean
     StatsClient statsClient;
     @Autowired

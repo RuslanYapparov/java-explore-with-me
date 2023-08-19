@@ -14,10 +14,7 @@ import ru.practicum.explore_with_me.main_service.model.domain_pojo.event.EventSt
 import ru.practicum.explore_with_me.main_service.model.rest_dto.category.CategoryRestView;
 import ru.practicum.explore_with_me.main_service.model.rest_dto.event.*;
 import ru.practicum.explore_with_me.main_service.model.rest_dto.user.UserShort;
-import ru.practicum.explore_with_me.main_service.service.CategoryService;
-import ru.practicum.explore_with_me.main_service.service.EventService;
-import ru.practicum.explore_with_me.main_service.service.RequestService;
-import ru.practicum.explore_with_me.main_service.service.UserService;
+import ru.practicum.explore_with_me.main_service.service.*;
 import ru.practicum.explore_with_me.stats_service.client_submodule.StatsClient;
 import ru.practicum.explore_with_me.stats_service.dto_submodule.dto.EwmConstants;
 import ru.practicum.explore_with_me.stats_service.dto_submodule.dto.HitRestView;
@@ -44,6 +41,8 @@ public class PublicEventsControllerTest {
     UserService userService;
     @MockBean
     RequestService requestService;
+    @MockBean
+    CompilationService compilationService;
     @MockBean
     StatsClient statsClient;
     @Autowired

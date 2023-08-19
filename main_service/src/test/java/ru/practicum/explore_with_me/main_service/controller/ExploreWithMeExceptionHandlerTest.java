@@ -16,10 +16,7 @@ import ru.practicum.explore_with_me.main_service.exception.BadRequestParameterEx
 import ru.practicum.explore_with_me.main_service.exception.ObjectNotFoundException;
 import ru.practicum.explore_with_me.main_service.exception.StatsServiceProblemException;
 import ru.practicum.explore_with_me.main_service.model.rest_dto.user.UserRestCommand;
-import ru.practicum.explore_with_me.main_service.service.CategoryService;
-import ru.practicum.explore_with_me.main_service.service.EventService;
-import ru.practicum.explore_with_me.main_service.service.RequestService;
-import ru.practicum.explore_with_me.main_service.service.UserService;
+import ru.practicum.explore_with_me.main_service.service.*;
 import ru.practicum.explore_with_me.stats_service.client_submodule.StatsClient;
 
 import javax.validation.ConstraintViolationException;
@@ -45,6 +42,8 @@ public class ExploreWithMeExceptionHandlerTest {
     EventService eventService;
     @MockBean
     RequestService requestService;
+    @MockBean
+    CompilationService compilationService;
     @MockBean
     StatsClient statsClient;
     @Autowired

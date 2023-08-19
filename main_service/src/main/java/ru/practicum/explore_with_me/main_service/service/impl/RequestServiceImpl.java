@@ -127,10 +127,10 @@ public class RequestServiceImpl implements RequestService {
         List<RequestEntity> requests = getListOfUpdatedRequestEntities(event, command);
         RequestStatus status = RequestStatus.valueOf(command.getStatus());
 
+        List<RequestEntity> allRequestsOfEvent = requestRepository.findAllByEventId(eventId);
         log.info("Status of requests with ids'" +
                 requests.stream().map(RequestEntity::getId).collect(Collectors.toList()) + "' was changed to '" +
                 status + "'");
-        List<RequestEntity> allRequestsOfEvent = requestRepository.findAllByEventId(eventId);
         return requestMapper.mapModeratedRequestsRestViewFromListOfRequests(
                 mapListOfRequestRestViewsFromRequestEntities(allRequestsOfEvent));
     }
@@ -179,8 +179,8 @@ public class RequestServiceImpl implements RequestService {
                     }
                 }
                 requestEntity.setStatus(status.name());
-                requestRepository.save(requestEntity);
             });
+            requestRepository.saveAll(requests);
             if (RequestStatus.CONFIRMED.equals(status)) {
                 event.setConfirmedRequests(confirmedRequests + requests.size());
                 eventRepository.save(event);

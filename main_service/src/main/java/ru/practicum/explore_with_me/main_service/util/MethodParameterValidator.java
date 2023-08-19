@@ -10,6 +10,7 @@ import ru.practicum.explore_with_me.main_service.model.domain_pojo.params_holder
 import ru.practicum.explore_with_me.main_service.model.domain_pojo.params_holder.JpaPublicGetAllQueryParamsHolder;
 import ru.practicum.explore_with_me.main_service.model.domain_pojo.params_holder.SortBy;
 import ru.practicum.explore_with_me.main_service.model.domain_pojo.request.RequestStatus;
+import ru.practicum.explore_with_me.main_service.model.rest_dto.compilation.CompilationRestCommand;
 import ru.practicum.explore_with_me.main_service.model.rest_dto.event.HttpAdminGetAllRequestParamsHolder;
 import ru.practicum.explore_with_me.main_service.model.rest_dto.event.HttpPublicGetAllRequestParamsHolder;
 import ru.practicum.explore_with_me.main_service.model.rest_dto.event.EventRestCommand;
@@ -21,6 +22,7 @@ import java.math.BigInteger;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeParseException;
 import java.util.Arrays;
+import java.util.Set;
 
 @UtilityClass
 public class MethodParameterValidator {
@@ -132,7 +134,7 @@ public class MethodParameterValidator {
         int participantLimit = event.getParticipantLimit();
         int confirmedRequests = event.getConfirmedRequests();
 
-        if (!event.getState().equals(EventState.PUBLISHED.name())) {
+        if (!EventState.PUBLISHED.name().equals(event.getState())) {
             throw new BadRequestBodyException("The event with id'" + event.getId() + "' is not published");
         }
         if (participantLimit == 0) {
@@ -166,6 +168,19 @@ public class MethodParameterValidator {
         if (!RequestStatus.CONFIRMED.equals(requestStatus) && !RequestStatus.REJECTED.equals(requestStatus)) {
             throw new BadRequestParameterException("Failed to change status of requests: status '" + requestStatus +
                     "' not supported for this operation.");
+        }
+    }
+
+    public static void checkCompilationRestCommandForSpecificLogic(CompilationRestCommand compilationRestCommand) {
+        checkStringField(compilationRestCommand.getTitle(), "title", 1, 50);
+        Set<Long> eventsIds = compilationRestCommand.getEventsIds();
+        if (eventsIds != null) {
+            compilationRestCommand.getEventsIds().forEach(id -> {
+                if (id <= 0) {
+                    throw new BadRequestParameterException(String.format("There is negative or zero id'%d' " +
+                            "of event in the request for saving/updating the compilation", id));
+                }
+            });
         }
     }
 
@@ -224,16 +239,18 @@ public class MethodParameterValidator {
     }
 
     private void checkStringField(String value, String fieldName, int min, int max) {
-        if (value != null && value.isBlank()) {
-            throw new BadRequestParameterException("Value of field '" + fieldName + "' must not be blank");
-        }
-        if (value != null && value.length() < min) {
-            throw new BadRequestParameterException(String.format("The length of text value in field '%s' must be " +
-                    "not less than '%d' characters", fieldName, min));
-        }
-        if (value != null && value.length() > max) {
-            throw new BadRequestParameterException(String.format("The length of text value in field '%s' must be " +
-                    "not greater than '%d' characters", fieldName, max));
+        if (value != null) {
+            if (value.isBlank()) {
+                throw new BadRequestParameterException("Value of field '" + fieldName + "' must not be blank");
+            }
+            if (value.length() < min) {
+                throw new BadRequestParameterException(String.format("The length of text value in field '%s' must be " +
+                        "not less than '%d' characters", fieldName, min));
+            }
+            if (value.length() > max) {
+                throw new BadRequestParameterException(String.format("The length of text value in field '%s' must be " +
+                        "not greater than '%d' characters", fieldName, max));
+            }
         }
     }
 
@@ -241,8 +258,7 @@ public class MethodParameterValidator {
         Arrays.stream(ids).forEach(id -> {
             if (id <= 0) {
                 throw new BadRequestParameterException(String.format("There is negative or zero id'%d' " +
-                                "of %s in the request",
-                        id, entity));
+                                "of %s in the request", id, entity));
             }
         });
     }
