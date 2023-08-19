@@ -1,9 +1,9 @@
 version: '3.8'
 services:
-  stats-server:
+  statserver:
     build: ./stats_service/server_submodule/
     image: ewm_stats_module_image
-    container_name: ewm_server
+    container_name: statserver
     ports:
       - "9090:9090"
       - "9091:9091"
@@ -28,3 +28,36 @@ services:
       - POSTGRES_USER=ewm_stats_dev
       - POSTGRES_PASSWORD=ewm_stats
       - PGDATA=/var/lib/postgresql/data/ewm_stats
+
+  main-server:
+    build: ./main_service/
+    image: ewm_main_module_image
+    container_name: ewm_main_server
+    ports:
+      - "8080:8080"
+      - "8081:8081"
+    depends_on:
+      - stats-db
+      - statserver
+      - main-db
+    environment:
+      - DB_HOST=ewm_main_db
+      - DB_PORT=5432
+      - DB_NAME=ewm_main_service_db
+      - POSTGRES_USER=ewm_dev
+      - POSTGRES_PASSWORD=ewm_main
+
+  main-db:
+    image: postgres:13.7-alpine
+    container_name: ewm_main_db
+    volumes:
+      - /var/lib/postgresql/data/ewm_main
+    ports:
+      - "6542:5433"
+    depends_on:
+      - stats-db
+    environment:
+      - POSTGRES_DB=ewm_main_service_db
+      - POSTGRES_USER=ewm_dev
+      - POSTGRES_PASSWORD=ewm_main
+      - PGDATA=/var/lib/postgresql/data/ewm_main

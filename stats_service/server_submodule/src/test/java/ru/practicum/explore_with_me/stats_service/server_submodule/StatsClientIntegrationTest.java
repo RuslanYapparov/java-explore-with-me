@@ -1,5 +1,6 @@
 package ru.practicum.explore_with_me.stats_service.server_submodule;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.NullSource;
@@ -23,6 +24,11 @@ import static org.junit.jupiter.api.Assertions.*;
 public class StatsClientIntegrationTest {
     private final StatsClient statsClient = new StatsClient(new RestTemplateBuilder());
     private static final String DEFAULT_IP = "121.0.0.1";
+
+    @BeforeEach
+    public void changeClientForTests() {
+        statsClient.changRestTemplate("localhost");
+    }
 
     @Test
     public void addNewHit_whenGetCorrectParameters_thenReturnCorrectResponseEntity() {
