@@ -25,7 +25,7 @@ public class AdminCompilationController {
     }
 
     @PatchMapping("{compilation_id}")
-    public CompilationRestView updateNewCompilation(@PathVariable(name = "compilation_id") long compilationId,
+    public CompilationRestView updateCompilation(@PathVariable(name = "compilation_id") long compilationId,
                                               @RequestBody CompilationRestCommand compilationRestCommand) {
         log.debug("New request to update compilation with id{} was received. Updated compilation details: '{}'",
                 compilationId, compilationRestCommand);

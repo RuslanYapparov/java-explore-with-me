@@ -5,17 +5,23 @@ import org.springframework.http.ResponseEntity;
 
 import org.springframework.stereotype.Component;
 import ru.practicum.explore_with_me.main_service.exception.StatsServiceProblemException;
+import ru.practicum.explore_with_me.main_service.mapper.impl.EventMapper;
+import ru.practicum.explore_with_me.main_service.model.db_entities.event.EventEntity;
+import ru.practicum.explore_with_me.main_service.model.domain_pojo.event.Event;
 import ru.practicum.explore_with_me.stats_service.client_submodule.StatsClient;
 import ru.practicum.explore_with_me.stats_service.dto_submodule.dto.EwmConstants;
 import ru.practicum.explore_with_me.stats_service.dto_submodule.dto.HitRestView;
 import ru.practicum.explore_with_me.stats_service.dto_submodule.dto.UriStatRestView;
 
 import java.time.LocalDateTime;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Component
 @RequiredArgsConstructor
 public class StatsServiceIntegrator {
     private final StatsClient statsClient;
+    private final EventMapper eventMapper;
 
     public void saveStatHitFromThisRequests(String ip, String uri) {
         ResponseEntity<HitRestView> statsServiceResponse = statsClient.addNewHit(ip, uri);
@@ -56,6 +62,31 @@ public class StatsServiceIntegrator {
         } else {
             return uriStats[0].getHits();
         }
+    }
+
+    public List<Event> mapEventEntitiesToEventsWithViews(Collection<EventEntity> entities) {
+        String[] uris = entities.stream()
+                .map(EventEntity::getId)
+                .map(entityId -> "/events/" + entityId)
+                .collect(Collectors.toList()).toArray(new String[] {});
+        Map<Long, Long> viewsStatistics = new HashMap<>();
+        Arrays.stream(getUriStatsFromService(uris))
+                .filter(uriStat -> !(uriStat.getUri().equals("/events")))
+                .forEach(uriStat -> {
+                    long eventId;
+                    try {
+                        eventId = Long.parseLong(uriStat.getUri().substring(8));
+                    } catch (NumberFormatException exception) {
+                        throw new StatsServiceProblemException("Unsupported URI format found in response from " +
+                                "Stats_service: " + uriStat.getUri());
+                    }
+                    viewsStatistics.put(eventId, uriStat.getHits());
+                });
+        return entities.stream()
+                .map(eventEntity -> eventMapper.fromDbEntity(eventEntity).toBuilder()
+                        .views(viewsStatistics.getOrDefault(eventEntity.getId(), 0L))
+                        .build())
+                .collect(Collectors.toList());
     }
 
 }

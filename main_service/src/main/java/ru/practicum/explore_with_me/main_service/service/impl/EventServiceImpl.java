@@ -17,7 +17,6 @@ import javax.validation.constraints.PositiveOrZero;
 import ru.practicum.explore_with_me.main_service.exception.BadRequestBodyException;
 import ru.practicum.explore_with_me.main_service.exception.BadRequestParameterException;
 import ru.practicum.explore_with_me.main_service.exception.ObjectNotFoundException;
-import ru.practicum.explore_with_me.main_service.exception.StatsServiceProblemException;
 import ru.practicum.explore_with_me.main_service.mapper.impl.EventMapper;
 import ru.practicum.explore_with_me.main_service.model.db_entities.CategoryEntity;
 import ru.practicum.explore_with_me.main_service.model.db_entities.UserEntity;
@@ -114,7 +113,7 @@ public class EventServiceImpl implements EventService {
             return Collections.emptyList();
         }
 
-        List<Event> events = mapEventEntitiesToEventsWithViews(eventsEntities);
+        List<Event> events = statsServiceIntegrator.mapEventEntitiesToEventsWithViews(eventsEntities);
         log.info("List of events with size '{}' requested with parameters '{}' was sent to client",
                 events.size(), httpParams);
         switch (paramsHolder.getSort()) {
@@ -139,7 +138,7 @@ public class EventServiceImpl implements EventService {
                                                          @Positive int size) {
         Pageable page = PageRequest.of(from / size, size, Sort.by(Sort.Direction.ASC, "id"));
         Page<EventEntity> eventEntitiesPage = eventRepository.findAllByInitiatorId(userId, page);
-        List<Event> events = mapEventEntitiesToEventsWithViews(eventEntitiesPage.getContent());
+        List<Event> events = statsServiceIntegrator.mapEventEntitiesToEventsWithViews(eventEntitiesPage.getContent());
         log.info("List of {} events requested by user with id'{}' was sent to client. Page parameters: " +
                         "from='{}', size='{}'", events.size(), userId, from, size);
         return events.stream()
@@ -158,7 +157,7 @@ public class EventServiceImpl implements EventService {
         if (eventsEntities.size() == 0) {
             return Collections.emptyList();
         }
-        List<Event> events = mapEventEntitiesToEventsWithViews(eventsEntities);
+        List<Event> events = statsServiceIntegrator.mapEventEntitiesToEventsWithViews(eventsEntities);
         log.info("List of events with size '{}' requested with parameters '{}' was sent to client",
                 events.size(), httpParams);
         return events.stream()
@@ -214,31 +213,6 @@ public class EventServiceImpl implements EventService {
     private CategoryEntity getCategoryIfExists(long categoryId) {
         return categoryRepository.findById(categoryId).orElseThrow(() -> new ObjectNotFoundException(
                 "Failed to save/update/get event: category with id'" + categoryId + "' was not saved"));
-    }
-
-    private List<Event> mapEventEntitiesToEventsWithViews(List<EventEntity> entities) {
-        String[] uris = entities.stream()
-                .map(EventEntity::getId)
-                .map(entityId -> "/events/" + entityId)
-                .collect(Collectors.toList()).toArray(new String[] {});
-        Map<Long, Long> viewsStatistics = new HashMap<>();
-        Arrays.stream(statsServiceIntegrator.getUriStatsFromService(uris))
-                .filter(uriStat -> !(uriStat.getUri().equals("/events")))
-                .forEach(uriStat -> {
-                    long eventId;
-                    try {
-                        eventId = Long.parseLong(uriStat.getUri().substring(8));
-                    } catch (NumberFormatException exception) {
-                        throw new StatsServiceProblemException("Unsupported URI format found in response from " +
-                                "Stats_service: " + uriStat.getUri());
-                    }
-                    viewsStatistics.put(eventId, uriStat.getHits());
-                });
-        return entities.stream()
-                .map(eventEntity -> eventMapper.fromDbEntity(eventEntity).toBuilder()
-                                .views(viewsStatistics.getOrDefault(eventEntity.getId(), 0L))
-                                .build())
-                .collect(Collectors.toList());
     }
 
     private EventEntity updateEventEntityInformationFromRestCommand(EventEntity eventEntity,

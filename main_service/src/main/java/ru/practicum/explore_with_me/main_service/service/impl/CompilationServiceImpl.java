@@ -8,25 +8,25 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
+import javax.validation.Valid;
+import javax.validation.constraints.Positive;
+import javax.validation.constraints.PositiveOrZero;
+
 import ru.practicum.explore_with_me.main_service.exception.ObjectNotFoundException;
 import ru.practicum.explore_with_me.main_service.mapper.impl.CompilationMapper;
 import ru.practicum.explore_with_me.main_service.model.db_entities.CompilationEntity;
 import ru.practicum.explore_with_me.main_service.model.db_entities.event.EventEntity;
 import ru.practicum.explore_with_me.main_service.model.domain_pojo.Compilation;
+import ru.practicum.explore_with_me.main_service.model.domain_pojo.event.Event;
 import ru.practicum.explore_with_me.main_service.model.rest_dto.compilation.CompilationRestCommand;
 import ru.practicum.explore_with_me.main_service.model.rest_dto.compilation.CompilationRestView;
 import ru.practicum.explore_with_me.main_service.repository.CompilationRepository;
 import ru.practicum.explore_with_me.main_service.repository.EventRepository;
 import ru.practicum.explore_with_me.main_service.service.CompilationService;
 import ru.practicum.explore_with_me.main_service.util.MethodParameterValidator;
+import ru.practicum.explore_with_me.main_service.util.StatsServiceIntegrator;
 
-import javax.validation.Valid;
-import javax.validation.constraints.Positive;
-import javax.validation.constraints.PositiveOrZero;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Transactional
@@ -38,6 +38,7 @@ public class CompilationServiceImpl implements CompilationService {
     private final CompilationRepository compilationRepository;
     private final EventRepository eventRepository;
     private final CompilationMapper compilationMapper;
+    private final StatsServiceIntegrator statsServiceIntegrator;
 
     @Override
     public CompilationRestView saveNewCompilation(@Valid CompilationRestCommand compilationRestCommand) {
@@ -61,7 +62,7 @@ public class CompilationServiceImpl implements CompilationService {
         });
         eventRepository.saveAll(new ArrayList<>(events));
         // Перевод в ArrayList для избегания ConcurrentModificationException
-        compilation = compilationMapper.fromDbEntity(compilationEntity);
+        compilation = getCompilationWithEventsWithViews(compilationEntity);
         log.info("New {} was saved", compilation);
         return compilationMapper.toRestView(compilation);
     }
@@ -75,18 +76,18 @@ public class CompilationServiceImpl implements CompilationService {
         } else {
             compilationEntities = compilationRepository.findAllByPinned(pinned, page).toList();
         }
+        List<Compilation> compilations = getListOfCompilationsWithEventsWithViews(compilationEntities);
         log.info("List of {} compilations was sent to client. Page params: from={}, size={}",
-                compilationEntities.size(), from, size);
-        return compilationEntities.stream()
-                .map(compilationEntity ->
-                        compilationMapper.toRestView(compilationMapper.fromDbEntity(compilationEntity)))
+                compilations.size(), from, size);
+        return compilations.stream()
+                .map(compilationMapper::toRestView)
                 .collect(Collectors.toList());
     }
 
     @Override
     public CompilationRestView getCompilationById(@Positive long compId) {
         CompilationEntity compilationEntity = getCompilationIfExists(compId);
-        Compilation compilation = compilationMapper.fromDbEntity(compilationEntity);
+        Compilation compilation = getCompilationWithEventsWithViews(compilationEntity);
         log.info("{} was sent to client", compilation);
         return compilationMapper.toRestView(compilation);
     }
@@ -96,8 +97,13 @@ public class CompilationServiceImpl implements CompilationService {
         MethodParameterValidator.checkCompilationRestCommandForSpecificLogic(compilationRestCommand);
         CompilationEntity compilationEntity = getCompilationIfExists(compId);
         Set<Long> eventsIds = compilationRestCommand.getEventsIds();
-        Set<EventEntity> events = eventsIds == null ?
-                compilationEntity.getEvents() : eventRepository.findAllByIdIn(eventsIds);
+        Set<EventEntity> events;
+        if (eventsIds == null) {
+            Set<EventEntity> eventsFromCompilation = compilationEntity.getEvents();
+            events = eventsFromCompilation == null ? new HashSet<>() : eventsFromCompilation;
+        } else {
+            events = eventRepository.findAllByIdIn(eventsIds);
+        }
         String title = compilationRestCommand.getTitle();
         Boolean pinned = compilationRestCommand.getPinned();
 
@@ -106,10 +112,17 @@ public class CompilationServiceImpl implements CompilationService {
         compilationEntity.setPinned(pinned == null ? compilationEntity.isPinned() : pinned);
         compilationEntity = compilationRepository.save(compilationEntity);
         CompilationEntity finalCompilationEntity = compilationEntity;
-        events.forEach(eventEntity -> eventEntity.getCompilations().add(finalCompilationEntity));
+        events.forEach(eventEntity -> {
+            Set<CompilationEntity> compilationsOfEvent = eventEntity.getCompilations();
+            if (compilationsOfEvent != null) {
+                eventEntity.getCompilations().add(finalCompilationEntity);
+            } else {
+                eventEntity.setCompilations(new HashSet<>(Set.of(finalCompilationEntity)));
+            }
+        });
         eventRepository.saveAll(new ArrayList<>(events));
         // Перевод в ArrayList для избегания ConcurrentModificationException
-        Compilation compilation = compilationMapper.fromDbEntity(compilationEntity);
+        Compilation compilation = getCompilationWithEventsWithViews(compilationEntity);
         log.info("Compilation with id'{}' was updated. Updated {}", compId, compilation);
         return compilationMapper.toRestView(compilation);
     }
@@ -125,6 +138,40 @@ public class CompilationServiceImpl implements CompilationService {
         return compilationRepository.findById(compilationId).orElseThrow(() -> new ObjectNotFoundException(
                 "Failed to make operation with compilation: the compilation with id'"
                         + compilationId + "' was not saved"));
+    }
+
+    private List<Compilation> getListOfCompilationsWithEventsWithViews(List<CompilationEntity> compilationEntities) {
+        if (compilationEntities == null || compilationEntities.isEmpty()) {
+            return new ArrayList<>();
+        }
+        Map<Long, Event> mapOfEvents = new HashMap<>();
+        List<Event> allEventsFromCompilationEntitiesWithViews = statsServiceIntegrator
+                .mapEventEntitiesToEventsWithViews(compilationEntities.stream()
+                        .map(CompilationEntity::getEvents)
+                        .flatMap(Set::stream)
+                        .collect(Collectors.toList()));
+        allEventsFromCompilationEntitiesWithViews.forEach(event ->
+                mapOfEvents.put(event.getId(), event));
+        return compilationEntities.stream()
+                .map(compilationMapper::fromDbEntity)
+                .peek(compilation -> compilation.toBuilder()
+                        .events(compilation.getEvents().stream()
+                                .map(Event::getId)
+                                .map(mapOfEvents::get)
+                                .collect(Collectors.toSet()))
+                        .build())
+                .collect(Collectors.toList());
+    }
+
+    private Compilation getCompilationWithEventsWithViews(CompilationEntity compilationEntity) {
+        if (compilationEntity.getEvents() == null || compilationEntity.getEvents().isEmpty()) {
+            return compilationMapper.fromDbEntity(compilationEntity);
+        }
+        List<Event> allEventsFromCompilationEntityWithViews = statsServiceIntegrator
+                .mapEventEntitiesToEventsWithViews(compilationEntity.getEvents());
+        return compilationMapper.fromDbEntity(compilationEntity).toBuilder()
+                .events(new HashSet<>(allEventsFromCompilationEntityWithViews))
+                .build();
     }
 
 }

@@ -100,7 +100,8 @@ public class CategoryServiceTest {
     @ParameterizedTest
     @ValueSource(longs = {0, -1})
     public void updateCategory_whenGetNullOrNegativeIdParameter_thenThrowsException(long value) {
-        assertThrows(ConstraintViolationException.class, () -> categoryService.deleteCategoryById(value));
+        assertThrows(ConstraintViolationException.class, () -> categoryService.updateCategory(
+                value, initializeCategoryRestCommand("new_category")));
     }
 
     @Test
