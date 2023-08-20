@@ -153,6 +153,4 @@ public class PublicEventsControllerTest {
                 .addNewHit(Mockito.anyString(), Mockito.anyString());
     }
 
-
-
 }

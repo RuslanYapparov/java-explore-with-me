@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
+
 import ru.practicum.explore_with_me.main_service.exception.BadRequestBodyException;
 import ru.practicum.explore_with_me.main_service.exception.BadRequestParameterException;
 import ru.practicum.explore_with_me.main_service.exception.ObjectNotFoundException;
@@ -50,14 +51,21 @@ public class RequestServiceImpl implements RequestService {
             throw new BadRequestBodyException("Failed to save request: initiator can't request participation " +
                     "in his event");
         }
+        RequestStatus status;
+        if (event.getParticipantLimit() == 0) {
+            status = RequestStatus.CONFIRMED;
+        } else {
+            status = event.isRequestModeration() ? RequestStatus.PENDING : RequestStatus.CONFIRMED;
+        }
         Request request = requestMapper.fromRestCommand(requestRestCommand).toBuilder()
-                .status(event.getParticipantLimit() != 0 ? RequestStatus.PENDING : RequestStatus.CONFIRMED)
+                .status(status)
                 .build();
         RequestEntity requestEntity = requestMapper.toDbEntity(request);
         requestEntity.setRequester(requester);
         requestEntity.setEvent(event);
         requestEntity.setCreatedOn(LocalDateTime.now());
         requestEntity = requestRepository.save(requestEntity);
+        eventRepository.save(event);
         request = requestMapper.fromDbEntity(requestEntity);
         log.info("New '{}' was saved", request);
         return requestMapper.toRestView(request);
@@ -68,6 +76,19 @@ public class RequestServiceImpl implements RequestService {
         getUserEntityIfExists(userId);
         List<RequestEntity> requests = requestRepository.findAllByRequesterId(userId);
         log.info("List of {} requests of user with id'{}' was sent to client", requests.size(), userId);
+        return mapListOfRequestRestViewsFromRequestEntities(requests);
+    }
+
+    @Override
+    public List<RequestRestView> getAllRequestsToEventForInitiator(@Positive long userId, @Positive long eventId) {
+        UserEntity initiator = getUserEntityIfExists(userId);
+        EventEntity event = getCheckedEventEntityIfExists(eventId, false);
+        if (!initiator.equals(event.getInitiator())) {
+            throw new BadRequestParameterException(String.format("User with id'%d' is not initiator of event " +
+                    "with id'%d'", userId, eventId));
+        }
+        List<RequestEntity> requests = requestRepository.findAllByEventId(eventId);
+        log.info("List of {} requests for event with id'{}' was sent to client", requests.size(), eventId);
         return mapListOfRequestRestViewsFromRequestEntities(requests);
     }
 
@@ -95,19 +116,6 @@ public class RequestServiceImpl implements RequestService {
         Request request = requestMapper.fromDbEntity(requestEntity);
         log.info("{}", request);
         return requestMapper.toRestView(request);
-    }
-
-    @Override
-    public List<RequestRestView> getAllRequestsToEventForInitiator(@Positive long userId, @Positive long eventId) {
-        UserEntity initiator = getUserEntityIfExists(userId);
-        EventEntity event = getCheckedEventEntityIfExists(eventId, false);
-        if (!initiator.equals(event.getInitiator())) {
-            throw new BadRequestParameterException(String.format("User with id'%d' is not initiator of event " +
-                    "with id'%d'", userId, eventId));
-        }
-        List<RequestEntity> requests = requestRepository.findAllByEventId(eventId);
-        log.info("List of {} requests for event with id'{}' was sent to client", requests.size(), eventId);
-        return mapListOfRequestRestViewsFromRequestEntities(requests);
     }
 
     @Override
