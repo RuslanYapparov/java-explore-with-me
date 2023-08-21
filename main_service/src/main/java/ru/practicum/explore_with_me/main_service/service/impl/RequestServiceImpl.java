@@ -5,7 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
 
-import ru.practicum.explore_with_me.main_service.exception.BadRequestBodyException;
+import ru.practicum.explore_with_me.main_service.exception.ObjectModificationException;
 import ru.practicum.explore_with_me.main_service.exception.BadRequestParameterException;
 import ru.practicum.explore_with_me.main_service.exception.ObjectNotFoundException;
 import ru.practicum.explore_with_me.main_service.mapper.impl.RequestMapper;
@@ -48,7 +48,7 @@ public class RequestServiceImpl implements RequestService {
         UserEntity requester = getUserEntityIfExists(requestRestCommand.getRequester());
         EventEntity event = getCheckedEventEntityIfExists(requestRestCommand.getEvent(), true);
         if (requester.equals(event.getInitiator())) {
-            throw new BadRequestBodyException("Failed to save request: initiator can't request participation " +
+            throw new ObjectModificationException("Failed to save request: initiator can't request participation " +
                     "in his event");
         }
         RequestStatus status;
@@ -102,7 +102,7 @@ public class RequestServiceImpl implements RequestService {
         switch (RequestStatus.valueOf(requestEntity.getStatus())) {
             case CANCELED:
             case REJECTED:
-                throw new BadRequestBodyException("Failed to cancel request: request already is in " +
+                throw new ObjectModificationException("Failed to cancel request: request already is in " +
                         "CANCELLED or REJECTED status");
             case PENDING:
                 break;
@@ -175,14 +175,14 @@ public class RequestServiceImpl implements RequestService {
         if (participantLimit != 0 && event.isRequestModeration()) {
             requests = requestRepository.findAllByIdIn(requestIds);
             if (RequestStatus.CONFIRMED.equals(status) && confirmedRequests + requests.size() > participantLimit) {
-                throw new BadRequestBodyException(String.format("Too many requests to confirm: participant limit " +
+                throw new ObjectModificationException(String.format("Too many requests to confirm: participant limit " +
                         "is '%d', number of already confirmed requests is '%d', number of new confirmed requests " +
                         "is '%d'", participantLimit, confirmedRequests, requests.size()));
             }
             requests.forEach(requestEntity -> {
                 if (RequestStatus.REJECTED.equals(status)) {
                     if (RequestStatus.CONFIRMED.name().equals(requestEntity.getStatus())) {
-                        throw new BadRequestBodyException("Failed to cancel request with id'" + requestEntity.getId() +
+                        throw new ObjectModificationException("Failed to cancel request with id'" + requestEntity.getId() +
                                 "': request was confirmed earlier");
                     }
                 }

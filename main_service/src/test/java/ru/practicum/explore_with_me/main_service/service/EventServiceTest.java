@@ -12,7 +12,7 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
-import ru.practicum.explore_with_me.main_service.exception.BadRequestBodyException;
+import ru.practicum.explore_with_me.main_service.exception.ObjectModificationException;
 import ru.practicum.explore_with_me.main_service.exception.BadRequestParameterException;
 import ru.practicum.explore_with_me.main_service.exception.ObjectNotFoundException;
 import ru.practicum.explore_with_me.main_service.exception.StatsServiceProblemException;
@@ -112,7 +112,7 @@ public class EventServiceTest {
 
     @Test
     public void saveNewEvent_whenGetEventRestCommandWithNegativeParticipantLimit_thenThrowException() {
-        assertThrows(BadRequestBodyException.class, () ->
+        assertThrows(ObjectModificationException.class, () ->
                 eventService.saveNewEvent(firstUser.getId(), EventRestCommand.builder()
                         .title("title_2")
                         .annotation("annotation_of_second_event")
@@ -347,11 +347,11 @@ public class EventServiceTest {
                 eventService.updateEventFromInitiator(firstUser.getId(), firstEvent.getId(), EventRestCommand.builder()
                         .description(value)
                         .build()));
-        assertThrows(BadRequestBodyException.class, () ->
+        assertThrows(ObjectModificationException.class, () ->
                 eventService.updateEventFromInitiator(firstUser.getId(), firstEvent.getId(), EventRestCommand.builder()
                         .eventDate(value)
                         .build()));
-        assertThrows(BadRequestBodyException.class, () ->
+        assertThrows(ObjectModificationException.class, () ->
                 eventService.updateEventFromInitiator(firstUser.getId(), firstEvent.getId(), EventRestCommand.builder()
                         .stateAction(value)
                         .build()));
@@ -387,11 +387,11 @@ public class EventServiceTest {
                 eventService.updateEventFromAdmin(firstEvent.getId(), EventRestCommand.builder()
                         .eventDate(LocalDateTime.now().minusSeconds(1).format(EwmConstants.FORMATTER))
                         .build()));
-        assertThrows(BadRequestBodyException.class, () ->
+        assertThrows(ObjectModificationException.class, () ->
                 eventService.updateEventFromAdmin(firstEvent.getId(), EventRestCommand.builder()
                         .eventDate(LocalDateTime.now().plusMinutes(59).format(EwmConstants.FORMATTER))
                         .build()));
-        assertThrows(BadRequestBodyException.class, () ->
+        assertThrows(ObjectModificationException.class, () ->
                 eventService.updateEventFromInitiator(firstUser.getId(), firstEvent.getId(), EventRestCommand.builder()
                         .eventDate(LocalDateTime.now().plusMinutes(119).format(EwmConstants.FORMATTER))
                         .build()));

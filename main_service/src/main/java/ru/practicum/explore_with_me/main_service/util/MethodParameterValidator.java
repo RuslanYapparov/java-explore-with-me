@@ -2,7 +2,7 @@ package ru.practicum.explore_with_me.main_service.util;
 
 import lombok.experimental.UtilityClass;
 
-import ru.practicum.explore_with_me.main_service.exception.BadRequestBodyException;
+import ru.practicum.explore_with_me.main_service.exception.ObjectModificationException;
 import ru.practicum.explore_with_me.main_service.exception.BadRequestParameterException;
 import ru.practicum.explore_with_me.main_service.model.db_entities.event.EventEntity;
 import ru.practicum.explore_with_me.main_service.model.domain_pojo.event.EventState;
@@ -38,13 +38,13 @@ public class MethodParameterValidator {
         String stateAction = eventRestCommand.getStateAction();
 
         if (participantLimit != null && participantLimit < 0) {
-            throw new BadRequestBodyException("Limit of participants cannot be less than 0");
+            throw new ObjectModificationException("Limit of participants cannot be less than 0");
         }
         if (stateAction != null) {
             try {
                 StateAction.valueOf(stateAction);
             } catch (IllegalArgumentException exception) {
-                throw new BadRequestBodyException(String.format("Failed to update event: stateAction must be one " +
+                throw new ObjectModificationException(String.format("Failed to update event: stateAction must be one " +
                         "of '%s', but was '%s'", Arrays.toString(StateAction.values()), stateAction));
             }
         }
@@ -135,7 +135,7 @@ public class MethodParameterValidator {
         int confirmedRequests = event.getConfirmedRequests();
 
         if (!EventState.PUBLISHED.name().equals(event.getState())) {
-            throw new BadRequestBodyException("The event with id'" + event.getId() + "' is not published");
+            throw new ObjectModificationException("The event with id'" + event.getId() + "' is not published");
         }
         if (participantLimit == 0) {
             event.setConfirmedRequests(confirmedRequests + 1);
@@ -146,7 +146,7 @@ public class MethodParameterValidator {
             }
             return event;
         } else {
-            throw new BadRequestBodyException("Event participant limit is reached");
+            throw new ObjectModificationException("Event participant limit is reached");
         }
     }
 
@@ -192,7 +192,7 @@ public class MethodParameterValidator {
         try {
             eventDate = LocalDateTime.parse(stringEventDate, EwmConstants.FORMATTER);
         } catch (DateTimeParseException exception) {
-            throw new BadRequestBodyException("Failed to create/update event: event date and time is in " +
+            throw new ObjectModificationException("Failed to create/update event: event date and time is in " +
                     "an unsupported format.");
         }
         if (eventDate.isBefore(LocalDateTime.now())) {       // Странная проверка eventDate, указанная в спецификации.
@@ -202,12 +202,12 @@ public class MethodParameterValidator {
         }
         if (afterModeration) {
             if (eventDate.isBefore(LocalDateTime.now().plusHours(1))) {
-                throw new BadRequestBodyException("Failed to create/update event: event date and time cannot be earlier " +
+                throw new ObjectModificationException("Failed to create/update event: event date and time cannot be earlier " +
                         "than one hour from the current moment, but was '" + eventDate + "'");
             }
         } else {
             if (eventDate.isBefore(LocalDateTime.now().plusHours(2))) {
-                throw new BadRequestBodyException("Failed to create/update event: event date and time cannot be earlier " +
+                throw new ObjectModificationException("Failed to create/update event: event date and time cannot be earlier " +
                         "than two hours from the current moment, but was '" + eventDate + "'");
             }
         }

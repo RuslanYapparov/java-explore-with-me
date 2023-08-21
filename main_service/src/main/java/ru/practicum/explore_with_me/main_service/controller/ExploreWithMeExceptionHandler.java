@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import javax.validation.ConstraintViolationException;
 
-import ru.practicum.explore_with_me.main_service.exception.BadRequestBodyException;
+import ru.practicum.explore_with_me.main_service.exception.ObjectModificationException;
 import ru.practicum.explore_with_me.main_service.exception.BadRequestParameterException;
 import ru.practicum.explore_with_me.main_service.exception.ObjectNotFoundException;
 import ru.practicum.explore_with_me.main_service.exception.StatsServiceProblemException;
@@ -46,9 +46,9 @@ public class ExploreWithMeExceptionHandler {
                 .build();
     }
 
-    @ExceptionHandler(BadRequestBodyException.class)
+    @ExceptionHandler(ObjectModificationException.class)
     @ResponseStatus(HttpStatus.CONFLICT)
-    public ErrorResponse handleBadRequestBodyException(BadRequestBodyException exception) {
+    public ErrorResponse handleObjectModificationException(ObjectModificationException exception) {
         log.warn(exception.getMessage());
         return ErrorResponse.builder()
                 .status(HttpStatus.FORBIDDEN) // В соответствии со спецификацией, в поле статус должно быть это значение
@@ -64,7 +64,7 @@ public class ExploreWithMeExceptionHandler {
     public ErrorResponse handleStatsServiceProblemException(StatsServiceProblemException exception) {
         log.warn(exception.getMessage());
         return ErrorResponse.builder()
-                .status(HttpStatus.SERVICE_UNAVAILABLE)
+                .status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .reason("There is problem with getting information from Stats_service (see message).")
                 .message(exception.getMessage())
                 .timestamp(LocalDateTime.now())
@@ -86,12 +86,17 @@ public class ExploreWithMeExceptionHandler {
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ErrorResponse handleMethodArgumentTypeMismatchException(MethodArgumentTypeMismatchException exception) {
-        String message = String.format("The parameter '%s' of value '%s' could not be converted to type '%s'. " +
-                        "Cause: %s",
-                exception.getName(),
-                exception.getValue(),
-                exception.getRequiredType() == null ? "" : exception.getRequiredType().getSimpleName(),
-                exception.getMessage());
+        String name = exception.getName();
+        Object value = exception.getValue();
+        Class<?> requiredType = exception.getRequiredType();
+        String exceptionMessage = exception.getMessage();
+        String message;
+        if (name == null || value == null || requiredType == null || exceptionMessage == null) {
+            message = "One of the parameters of method could not be converted to type required type";
+        } else {
+            message = String.format("The parameter '%s' of value '%s' could not be converted to type '%s'. " +
+                    "Cause: %s", name, value, requiredType, exceptionMessage);
+        }
         log.warn(message);
         return ErrorResponse.builder()
                 .status(HttpStatus.BAD_REQUEST)

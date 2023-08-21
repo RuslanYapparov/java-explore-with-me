@@ -13,7 +13,7 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
-import ru.practicum.explore_with_me.main_service.exception.BadRequestBodyException;
+import ru.practicum.explore_with_me.main_service.exception.ObjectModificationException;
 import ru.practicum.explore_with_me.main_service.exception.BadRequestParameterException;
 import ru.practicum.explore_with_me.main_service.exception.ObjectNotFoundException;
 import ru.practicum.explore_with_me.main_service.model.domain_pojo.request.RequestStatus;
@@ -248,7 +248,7 @@ public class RequestServiceTest {
                         .event(secondEvent.getId())
                         .build()));
 
-        BadRequestBodyException exception = assertThrows(BadRequestBodyException.class, () ->
+        ObjectModificationException exception = assertThrows(ObjectModificationException.class, () ->
                 requestService.saveNewRequest(RequestRestCommand.builder()
                         .requester(firstEvent.getId())
                         .event(firstEvent.getId())
@@ -305,7 +305,7 @@ public class RequestServiceTest {
                         .status(RequestStatus.REJECTED.name())
                         .build());
 
-        assertThrows(BadRequestBodyException.class, () ->
+        assertThrows(ObjectModificationException.class, () ->
                 requestService.cancelRequestByRequester(secondUser.getId(), requestRestView.getId()));
     }
 

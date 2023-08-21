@@ -11,7 +11,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
 import ru.practicum.explore_with_me.main_service.controller.admin.UserController;
-import ru.practicum.explore_with_me.main_service.exception.BadRequestBodyException;
+import ru.practicum.explore_with_me.main_service.exception.ObjectModificationException;
 import ru.practicum.explore_with_me.main_service.exception.BadRequestParameterException;
 import ru.practicum.explore_with_me.main_service.exception.ObjectNotFoundException;
 import ru.practicum.explore_with_me.main_service.exception.StatsServiceProblemException;
@@ -86,8 +86,8 @@ public class ExploreWithMeExceptionHandlerTest {
     }
 
     @Test
-    public void handleBadRequestBodyException_whenServiceThrows_thenReturnErrorResponse() throws Exception {
-        when(userService.saveNewUser(Mockito.any())).thenThrow(new BadRequestBodyException("bad_request_body"));
+    public void handleObjectException_whenServiceThrows_thenReturnErrorResponse() throws Exception {
+        when(userService.saveNewUser(Mockito.any())).thenThrow(new ObjectModificationException("modification_forbidden"));
 
         mvc.perform(post("/admin/users")
                         .content(objectMapper.writeValueAsString(UserRestCommand.builder().build()))
@@ -98,7 +98,7 @@ public class ExploreWithMeExceptionHandlerTest {
                 .andExpect(jsonPath("$.status", is("FORBIDDEN")))
                 .andExpect(jsonPath("$.reason",
                         is("For the requested operation the conditions are not met.")))
-                .andExpect(jsonPath("$.message", is("bad_request_body")));
+                .andExpect(jsonPath("$.message", is("modification_forbidden")));
 
         verify(userService, Mockito.times(1))
                 .saveNewUser(Mockito.any(UserRestCommand.class));
@@ -115,7 +115,7 @@ public class ExploreWithMeExceptionHandlerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isInternalServerError())
-                .andExpect(jsonPath("$.status", is("SERVICE_UNAVAILABLE")))
+                .andExpect(jsonPath("$.status", is("INTERNAL_SERVER_ERROR")))
                 .andExpect(jsonPath("$.reason",
                         is("There is problem with getting information from Stats_service (see message).")))
                 .andExpect(jsonPath("$.message", is("stats_service_problem")));

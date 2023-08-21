@@ -14,7 +14,7 @@ import javax.validation.Valid;
 import javax.validation.constraints.Positive;
 import javax.validation.constraints.PositiveOrZero;
 
-import ru.practicum.explore_with_me.main_service.exception.BadRequestBodyException;
+import ru.practicum.explore_with_me.main_service.exception.ObjectModificationException;
 import ru.practicum.explore_with_me.main_service.exception.BadRequestParameterException;
 import ru.practicum.explore_with_me.main_service.exception.ObjectNotFoundException;
 import ru.practicum.explore_with_me.main_service.mapper.impl.EventMapper;
@@ -172,7 +172,7 @@ public class EventServiceImpl implements EventService {
         UserEntity initiator = getInitiatorIfExists(userId);
         EventEntity eventEntity = getEventEntityIfExists(eventId);
         if (!eventEntity.getInitiator().equals(initiator)) {
-            throw new BadRequestBodyException("Only initiator can make changes in his event");
+            throw new ObjectModificationException("Only initiator can make changes in his event");
         }
 
         eventRestCommand = MethodParameterValidator
@@ -223,22 +223,22 @@ public class EventServiceImpl implements EventService {
         EventState state = EventState.valueOf(eventEntity.getState());
         if (afterModeration) {
             if (!EventState.PENDING.equals(state)) {
-                throw new BadRequestBodyException("The event for updating by admin is not in WAITING state");
+                throw new ObjectModificationException("The event for updating by admin is not in WAITING state");
             }
             return fillEventEntityFieldsFromEventRestCommand(eventEntity, eventRestCommand, true);
         }
         switch (state) {
             case PUBLISHED:
-                throw new BadRequestBodyException("Only pending or canceled events can be changed");
+                throw new ObjectModificationException("Only pending or canceled events can be changed");
                 case PENDING:
                 if (stateAction != null && !StateAction.CANCEL_REVIEW.equals(stateAction)) {
-                    throw new BadRequestBodyException(String.format("Unsupported operation '%S' " +
+                    throw new ObjectModificationException(String.format("Unsupported operation '%S' " +
                             "for event in state '%S'", stateAction, state));
                 }
                 return fillEventEntityFieldsFromEventRestCommand(eventEntity, eventRestCommand, false);
             case CANCELED:
                 if (stateAction != null && !StateAction.SEND_TO_REVIEW.equals(stateAction)) {
-                    throw new BadRequestBodyException(String.format("Unsupported operation '%S' " +
+                    throw new ObjectModificationException(String.format("Unsupported operation '%S' " +
                             "for event in state '%S'", stateAction, state));
                 }
                 return fillEventEntityFieldsFromEventRestCommand(eventEntity, eventRestCommand, false);
@@ -268,7 +268,7 @@ public class EventServiceImpl implements EventService {
         int confirmedRequests = eventEntity.getConfirmedRequests();
         if (participantLimit != null && participantLimit != 0) {
             if (participantLimit <= confirmedRequests) {
-                throw new BadRequestBodyException(String.format("Cannot reduce limit of participants to value '%d': " +
+                throw new ObjectModificationException(String.format("Cannot reduce limit of participants to value '%d': " +
                         "there are '%d' confirmed requests for this event", participantLimit, confirmedRequests));
             }
         }
@@ -301,7 +301,7 @@ public class EventServiceImpl implements EventService {
             } else if (StateAction.REJECT_EVENT.equals(stateAction)) {
                 return EventState.CANCELED;
             } else {
-                throw new BadRequestBodyException("Unsupported operation '" + stateAction
+                throw new ObjectModificationException("Unsupported operation '" + stateAction
                         + "' for updating event after moderation");
             }
         } else {

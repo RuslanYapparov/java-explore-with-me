@@ -9,7 +9,6 @@ import ru.practicum.explore_with_me.main_service.model.domain_pojo.Compilation;
 import ru.practicum.explore_with_me.main_service.model.rest_dto.compilation.CompilationRestCommand;
 import ru.practicum.explore_with_me.main_service.model.rest_dto.compilation.CompilationRestView;
 
-
 @Mapper(componentModel = "spring")
 public interface CompilationMapper
         extends ObjectMapper<CompilationEntity, Compilation, CompilationRestCommand, CompilationRestView> {
