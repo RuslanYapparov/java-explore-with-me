@@ -244,13 +244,13 @@ public class RequestServiceTest {
     public void saveNewRequest_whenDoubleRequestOrRequestOwnEvent_thenThrowException() {
         assertThrows(DataIntegrityViolationException.class, () ->
                 requestService.saveNewRequest(RequestRestCommand.builder()
-                        .requester(firstEvent.getId())
+                        .requester(firstUser.getId())
                         .event(secondEvent.getId())
                         .build()));
 
         ObjectModificationException exception = assertThrows(ObjectModificationException.class, () ->
                 requestService.saveNewRequest(RequestRestCommand.builder()
-                        .requester(firstEvent.getId())
+                        .requester(firstUser.getId())
                         .event(firstEvent.getId())
                         .build()));
         assertThat(exception.getMessage(), equalTo("Failed to save request: initiator can't request participation " +
