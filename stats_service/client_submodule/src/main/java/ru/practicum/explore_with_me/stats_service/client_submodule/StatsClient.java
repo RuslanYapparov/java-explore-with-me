@@ -28,7 +28,7 @@ public class StatsClient {
 
     @Autowired
     public StatsClient(RestTemplateBuilder builder) {
-        this.restTemplate = builder.uriTemplateHandler(new DefaultUriBuilderFactory("http://localhost:9090"))
+        this.restTemplate = builder.uriTemplateHandler(new DefaultUriBuilderFactory("http://statserver:9090"))
                 .requestFactory(HttpComponentsClientHttpRequestFactory::new)
                 .build();
     }
@@ -74,4 +74,9 @@ public class StatsClient {
                     .build()});
         }
     }
+
+    public void changRestTemplate(String host) {
+        this.restTemplate.setUriTemplateHandler(new DefaultUriBuilderFactory("http://" + host + ":9090"));
+    }
+
 }
