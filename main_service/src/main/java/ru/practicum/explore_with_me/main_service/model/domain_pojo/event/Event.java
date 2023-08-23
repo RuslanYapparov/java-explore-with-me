@@ -24,6 +24,8 @@ public class Event {
     boolean requestModeration;
     int participantLimit;
     int confirmedRequests;
+    int rating;
+    int numberOfUsersLiked;
     EventState state;
     LocalDateTime createdOn;
     LocalDateTime publishedOn;

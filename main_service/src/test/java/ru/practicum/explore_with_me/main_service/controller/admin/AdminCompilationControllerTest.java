@@ -42,6 +42,8 @@ public class AdminCompilationControllerTest {
     @MockBean
     CategoryService categoryService;
     @MockBean
+    LikeService likeService;
+    @MockBean
     StatsClient statsClient;
     @Autowired
     private MockMvc mvc;

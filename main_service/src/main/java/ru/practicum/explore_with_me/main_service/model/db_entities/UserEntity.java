@@ -4,8 +4,10 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import ru.practicum.explore_with_me.main_service.model.db_entities.event.EventEntity;
 
 import javax.persistence.*;
+import java.util.List;
 
 @Entity
 @Table(name = "users")
@@ -22,5 +24,7 @@ public class UserEntity {
     private String name;
     @Column(name = "email", nullable = false)
     private String email;
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "initiator")
+    private List<EventEntity> events;
 
 }

@@ -46,7 +46,7 @@ public class RequestServiceImpl implements RequestService {
     @Override
     public RequestRestView saveNewRequest(@Valid RequestRestCommand requestRestCommand) {
         UserEntity requester = getUserEntityIfExists(requestRestCommand.getRequester());
-        EventEntity event = getCheckedEventEntityIfExists(requestRestCommand.getEvent(), true);
+        EventEntity event = getPreparedEventEntityIfExists(requestRestCommand.getEvent(), true);
         if (requester.equals(event.getInitiator())) {
             throw new ObjectModificationException("Failed to save request: initiator can't request participation " +
                     "in his event");
@@ -82,7 +82,7 @@ public class RequestServiceImpl implements RequestService {
     @Override
     public List<RequestRestView> getAllRequestsToEventForInitiator(@Positive long userId, @Positive long eventId) {
         UserEntity initiator = getUserEntityIfExists(userId);
-        EventEntity event = getCheckedEventEntityIfExists(eventId, false);
+        EventEntity event = getPreparedEventEntityIfExists(eventId, false);
         if (!initiator.equals(event.getInitiator())) {
             throw new BadRequestParameterException(String.format("User with id'%d' is not initiator of event " +
                     "with id'%d'", userId, eventId));
@@ -123,7 +123,7 @@ public class RequestServiceImpl implements RequestService {
                                                                     @Valid RequestStatusSetRestCommand command) {
         MethodParameterValidator.checkStatusCommandForSpecificLogic(command);
         UserEntity initiator = getUserEntityIfExists(userId);
-        EventEntity event = getCheckedEventEntityIfExists(eventId, false);
+        EventEntity event = getPreparedEventEntityIfExists(eventId, false);
         if (!EventState.PUBLISHED.name().equals(event.getState())) {
             throw new UnsupportedOperationException("Failed to change status of requests for event with id'"
                     + eventId + "': event is not in PUBLISHED state");
@@ -143,7 +143,7 @@ public class RequestServiceImpl implements RequestService {
                 mapListOfRequestRestViewsFromRequestEntities(allRequestsOfEvent));
     }
 
-    private EventEntity getCheckedEventEntityIfExists(long eventId, boolean isRequestSaving) {
+    private EventEntity getPreparedEventEntityIfExists(long eventId, boolean isRequestSaving) {
         EventEntity event = eventRepository.findById(eventId).orElseThrow(() ->  new ObjectNotFoundException(
                 "Failed to save/update/get request: event with id'" + eventId + "' was not saved"));
         return isRequestSaving ? MethodParameterValidator.getValidEventEntityToSaveRequest(event) : event;

@@ -1,11 +1,14 @@
 package ru.practicum.explore_with_me.main_service.util;
 
+import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import lombok.experimental.UtilityClass;
 
+import ru.practicum.explore_with_me.main_service.model.db_entities.QUserEntity;
 import ru.practicum.explore_with_me.main_service.model.db_entities.event.QEventEntity;
 import ru.practicum.explore_with_me.main_service.model.domain_pojo.event.EventState;
 import ru.practicum.explore_with_me.main_service.model.domain_pojo.params_holder.JpaAdminGetAllQueryParamsHolder;
+import ru.practicum.explore_with_me.main_service.model.domain_pojo.params_holder.JpaGetEventAuthorsQueryParamsHolder;
 import ru.practicum.explore_with_me.main_service.model.domain_pojo.params_holder.JpaPublicGetAllQueryParamsHolder;
 
 import java.time.LocalDateTime;
@@ -69,6 +72,32 @@ public class QueryDslExpressionCreator {
             conditions.add(qEventEntity.eventDate.before(rangeEnd));
         }
         return makeFinalCondition(conditions);
+    }
+
+    public static BooleanExpression prepareConditionsForQuery(JpaGetEventAuthorsQueryParamsHolder paramsHolder) {
+        QEventEntity qEventEntity = QUserEntity.userEntity.events.any();
+        List<BooleanExpression> conditions = new ArrayList<>();
+        conditions.add(qEventEntity.state.like(EventState.PUBLISHED.name()));
+        long[] categories = paramsHolder.getCategories();
+        if (categories != null) {
+            conditions.add(qEventEntity.category.id.in(getCollectionFromLongArray(categories)));
+        }
+        Boolean areOver = paramsHolder.getEventsAreOver();
+        if (areOver != null) {
+            conditions.add(areOver ? qEventEntity.eventDate.before(LocalDateTime.now()) :
+                    qEventEntity.eventDate.after(LocalDateTime.now()));
+        }
+        Boolean paid = paramsHolder.getPaid();
+        if (paid != null) {
+            conditions.add(qEventEntity.paid.eq(paid));
+        }
+        return makeFinalCondition(conditions);
+    }
+
+    public static OrderSpecifier<Integer> prepareSortOrderForQuery(JpaGetEventAuthorsQueryParamsHolder paramsHolder) {
+        QEventEntity qEventEntity = QUserEntity.userEntity.events.any();
+        return paramsHolder.isAscendingDirection() ? qEventEntity.rating.divide(qEventEntity.numberOfUsersLiked).asc() :
+                qEventEntity.rating.divide(qEventEntity.numberOfUsersLiked).desc();
     }
 
     private BooleanExpression makeFinalCondition(List<BooleanExpression> conditions) {

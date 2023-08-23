@@ -90,7 +90,7 @@ public class EventServiceImpl implements EventService {
         EventEntity eventEntity = getEventEntityIfExists(eventId);
         if (!eventEntity.getInitiator().equals(initiator)) {
             throw new BadRequestParameterException(String.format("User with id '%d' is not the initiator of " +
-                    "event with id'%d' and can't receive information about it by private API", eventId, userId));
+                    "event with id'%d' and can't receive information about it by private API", userId, eventId));
         }
 
         Event event = eventMapper.fromDbEntity(eventEntity).toBuilder()
@@ -119,6 +119,11 @@ public class EventServiceImpl implements EventService {
         switch (paramsHolder.getSort()) {
             case EVENT_DATE:
                 return events.stream()
+                        .map(eventMapper::mapEventRestViewShortFromEvent)
+                        .collect(Collectors.toList());
+            case RATING:
+                return events.stream()
+                        .sorted(Comparator.comparingInt(Event::getRating).reversed())
                         .map(eventMapper::mapEventRestViewShortFromEvent)
                         .collect(Collectors.toList());
             case VIEWS:

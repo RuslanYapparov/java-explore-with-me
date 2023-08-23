@@ -50,6 +50,8 @@ public class RequestControllerTest {
     @MockBean
     CompilationService compilationService;
     @MockBean
+    LikeService likeService;
+    @MockBean
     StatsClient statsClient;
     @Autowired
     private MockMvc mvc;

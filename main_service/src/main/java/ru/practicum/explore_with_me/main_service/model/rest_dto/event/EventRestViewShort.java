@@ -28,6 +28,8 @@ public class EventRestViewShort {
     CategoryRestView category;
     @JsonProperty("confirmedRequests")
     int confirmedRequests;
+    @JsonProperty("rating")
+    int rating;
     @JsonProperty("paid")
     boolean paid;
     @JsonProperty("views")
