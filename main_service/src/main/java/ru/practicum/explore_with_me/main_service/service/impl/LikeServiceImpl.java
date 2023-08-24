@@ -49,6 +49,13 @@ public class LikeServiceImpl implements LikeService {
         long eventId = likeRestCommand.getEvent();
         UserEntity userEntity = getUserEntityIfExists(userId);
         EventEntity eventEntity = getEventEntityIfExists(eventId);
+        LikeEntity likeEntity = new LikeEntity();
+        likeEntity.setUser(userEntity);
+        likeEntity.setEvent(eventEntity);
+        likeEntity.setLike(likeRestCommand.isLike());
+        likeEntity.setClickedOn(LocalDateTime.now());
+        likeRepository.save(likeEntity);
+
         UserEntity initiator = eventEntity.getInitiator();
         initiator.getEvents().remove(eventEntity);
         if (!EventState.PUBLISHED.name().equals(eventEntity.getState())) {
@@ -60,12 +67,6 @@ public class LikeServiceImpl implements LikeService {
         eventRepository.save(eventEntity);
         initiator.getEvents().add(eventEntity);
         saveInitiatorWithNewRatingAfterLike(initiator);
-        LikeEntity likeEntity = new LikeEntity();
-        likeEntity.setUser(userEntity);
-        likeEntity.setEvent(eventEntity);
-        likeEntity.setLike(likeRestCommand.isLike());
-        likeEntity.setClickedOn(LocalDateTime.now());
-        likeRepository.save(likeEntity);
         Event event = getEventWithViewsFromEventEntity(eventEntity);
         log.info("User with id'{}' clicked {} to event with id'{}'", userId,
                 likeRestCommand.isLike() ? "like" : "dislike", eventId);
@@ -107,8 +108,10 @@ public class LikeServiceImpl implements LikeService {
     public EventRestView removeLikeByUser(@Positive long userId, @Positive long eventId) {
         getUserEntityIfExists(userId);
         LikeEntity likeEntity = getLikeIfExists(userId, eventId);
-        boolean isLike = likeEntity.isLike();
         EventEntity eventEntity = likeEntity.getEvent();
+        likeRepository.delete(likeEntity);
+
+        boolean isLike = likeEntity.isLike();
         UserEntity initiator = eventEntity.getInitiator();
         initiator.getEvents().remove(eventEntity);
         eventEntity.setNumberOfLikes(eventEntity.getNumberOfLikes() - 1);
@@ -116,7 +119,6 @@ public class LikeServiceImpl implements LikeService {
         eventRepository.save(eventEntity);
         initiator.getEvents().add(eventEntity);
         saveInitiatorWithNewRatingAfterLike(initiator);
-        likeRepository.delete(likeEntity);
         Event event = getEventWithViewsFromEventEntity(eventEntity);
         log.info("User with id'{}' removed his {} from event with id'{}'", userId,
                 isLike ? "like" : "dislike", event.getId());

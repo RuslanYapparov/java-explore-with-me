@@ -21,12 +21,14 @@ public class LikeController {
     @PostMapping("/likes")
     @ResponseStatus(HttpStatus.CREATED)
     public EventRestView saveNewLike(@PathVariable(name = "user_id") long userId,
-                                     @RequestParam(name = "eventId") long eventId) {
+                                     @RequestParam(name = "eventId") long eventId,
+                                     @RequestParam(name = "isLike") boolean isLike) {
         log.debug("New request to save like from user with id'{}' to event with id'{}' was received",
                 userId, eventId);
         return likeService.saveNewLike(LikeRestCommand.builder()
                 .user(userId)
                 .event(eventId)
+                .isLike(isLike)
                 .build());
     }
 
@@ -47,10 +49,10 @@ public class LikeController {
         return likeService.getAllUsersWhoLikedEventForInitiator(userId, eventId, afterEvent);
     }
 
-    @DeleteMapping("/likes/{event_id}/remove")
+    @DeleteMapping("/likes")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public EventRestView removeLike(@PathVariable(name = "user_id") long userId,
-                                    @PathVariable(name = "event_id") long eventId) {
+                                    @RequestParam(name = "eventId") long eventId) {
         log.debug("New request to remove like with id'{}' from user with id'{}' was received", eventId, userId);
         return likeService.removeLikeByUser(userId, eventId);
     }

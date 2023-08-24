@@ -100,6 +100,7 @@ public class LikeControllerTest {
 
         mvc.perform(post("/users/2/likes")
                         .param("eventId", "3")
+                        .param("isLike", "true")
                         .characterEncoding(StandardCharsets.UTF_8)
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON))
@@ -182,7 +183,8 @@ public class LikeControllerTest {
         when(likeService.removeLikeByUser(Mockito.anyLong(), Mockito.anyLong()))
                 .thenReturn(event);
 
-        mvc.perform(delete("/users/77777777/likes/5555555555555/remove")
+        mvc.perform(delete("/users/77777777/likes")
+                        .param("eventId", "77")
                         .content(objectMapper.writeValueAsString(LikeRestCommand.builder().build()))
                         .characterEncoding(StandardCharsets.UTF_8)
                         .contentType(MediaType.APPLICATION_JSON)
