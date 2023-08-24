@@ -8,7 +8,7 @@ import org.springframework.validation.annotation.Validated;
 import ru.practicum.explore_with_me.main_service.exception.ObjectModificationException;
 import ru.practicum.explore_with_me.main_service.exception.BadRequestParameterException;
 import ru.practicum.explore_with_me.main_service.exception.ObjectNotFoundException;
-import ru.practicum.explore_with_me.main_service.mapper.impl.RequestMapper;
+import ru.practicum.explore_with_me.main_service.mapper.RequestMapper;
 import ru.practicum.explore_with_me.main_service.model.db_entities.RequestEntity;
 import ru.practicum.explore_with_me.main_service.model.db_entities.UserEntity;
 import ru.practicum.explore_with_me.main_service.model.db_entities.event.EventEntity;

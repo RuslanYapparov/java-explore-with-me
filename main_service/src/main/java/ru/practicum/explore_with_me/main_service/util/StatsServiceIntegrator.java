@@ -5,7 +5,7 @@ import org.springframework.http.ResponseEntity;
 
 import org.springframework.stereotype.Component;
 import ru.practicum.explore_with_me.main_service.exception.StatsServiceProblemException;
-import ru.practicum.explore_with_me.main_service.mapper.impl.EventMapper;
+import ru.practicum.explore_with_me.main_service.mapper.EventMapper;
 import ru.practicum.explore_with_me.main_service.model.db_entities.event.EventEntity;
 import ru.practicum.explore_with_me.main_service.model.domain_pojo.event.Event;
 import ru.practicum.explore_with_me.stats_service.client_submodule.StatsClient;

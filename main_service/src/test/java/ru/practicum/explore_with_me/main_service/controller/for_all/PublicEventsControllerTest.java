@@ -11,7 +11,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
 
-import ru.practicum.explore_with_me.main_service.mapper.impl.EventMapperImpl;
+import ru.practicum.explore_with_me.main_service.mapper.EventMapperImpl;
 import ru.practicum.explore_with_me.main_service.model.domain_pojo.event.EventState;
 import ru.practicum.explore_with_me.main_service.model.rest_dto.category.CategoryRestView;
 import ru.practicum.explore_with_me.main_service.model.rest_dto.event.*;

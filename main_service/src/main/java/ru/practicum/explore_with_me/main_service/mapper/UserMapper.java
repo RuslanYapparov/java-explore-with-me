@@ -1,8 +1,7 @@
-package ru.practicum.explore_with_me.main_service.mapper.impl;
+package ru.practicum.explore_with_me.main_service.mapper;
 
 import org.mapstruct.Mapper;
 
-import ru.practicum.explore_with_me.main_service.mapper.ObjectMapper;
 import ru.practicum.explore_with_me.main_service.model.db_entities.LikeEntity;
 import ru.practicum.explore_with_me.main_service.model.db_entities.UserEntity;
 import ru.practicum.explore_with_me.main_service.model.domain_pojo.User;
@@ -15,7 +14,15 @@ import java.util.List;
 import java.util.TreeSet;
 
 @Mapper(componentModel = "spring")
-public interface UserMapper extends ObjectMapper<UserEntity, User, UserRestCommand, UserRestView> {
+public interface UserMapper {
+
+    User fromRestCommand(UserRestCommand userRestCommand);
+
+    UserRestView toRestView(User user);
+
+    User fromDbEntity(UserEntity userEntity);
+
+    UserEntity toDbEntity(User user);
 
     default WhoLikedRestView mapWhoLikedRestViewFromListOfLikeEntities(List<LikeEntity> likeEntities) {
         WhoLikedRestView whoLikedRestView = WhoLikedRestView.builder()

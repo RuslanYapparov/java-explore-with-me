@@ -12,8 +12,8 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
 
 import ru.practicum.explore_with_me.main_service.controller.for_authorized.RequestController;
-import ru.practicum.explore_with_me.main_service.mapper.impl.RequestMapper;
-import ru.practicum.explore_with_me.main_service.mapper.impl.RequestMapperImpl;
+import ru.practicum.explore_with_me.main_service.mapper.RequestMapper;
+import ru.practicum.explore_with_me.main_service.mapper.RequestMapperImpl;
 import ru.practicum.explore_with_me.main_service.model.domain_pojo.request.RequestStatus;
 import ru.practicum.explore_with_me.main_service.model.rest_dto.request.RequestRestCommand;
 import ru.practicum.explore_with_me.main_service.model.rest_dto.request.RequestRestView;

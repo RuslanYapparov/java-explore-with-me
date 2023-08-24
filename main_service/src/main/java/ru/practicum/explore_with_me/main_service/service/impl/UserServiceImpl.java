@@ -13,7 +13,7 @@ import javax.validation.constraints.PositiveOrZero;
 import org.springframework.validation.annotation.Validated;
 
 import ru.practicum.explore_with_me.main_service.exception.ObjectNotFoundException;
-import ru.practicum.explore_with_me.main_service.mapper.impl.UserMapper;
+import ru.practicum.explore_with_me.main_service.mapper.UserMapper;
 import ru.practicum.explore_with_me.main_service.model.db_entities.UserEntity;
 import ru.practicum.explore_with_me.main_service.model.domain_pojo.User;
 import ru.practicum.explore_with_me.main_service.model.rest_dto.user.UserRestCommand;

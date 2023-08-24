@@ -13,7 +13,7 @@ import javax.validation.constraints.Positive;
 import javax.validation.constraints.PositiveOrZero;
 
 import ru.practicum.explore_with_me.main_service.exception.ObjectNotFoundException;
-import ru.practicum.explore_with_me.main_service.mapper.impl.CompilationMapper;
+import ru.practicum.explore_with_me.main_service.mapper.CompilationMapper;
 import ru.practicum.explore_with_me.main_service.model.db_entities.CompilationEntity;
 import ru.practicum.explore_with_me.main_service.model.db_entities.event.EventEntity;
 import ru.practicum.explore_with_me.main_service.model.domain_pojo.Compilation;

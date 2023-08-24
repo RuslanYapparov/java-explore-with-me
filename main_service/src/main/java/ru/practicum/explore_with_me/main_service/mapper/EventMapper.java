@@ -1,10 +1,9 @@
-package ru.practicum.explore_with_me.main_service.mapper.impl;
+package ru.practicum.explore_with_me.main_service.mapper;
 
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;
 
-import ru.practicum.explore_with_me.main_service.mapper.ObjectMapper;
 import ru.practicum.explore_with_me.main_service.model.db_entities.LikeEntity;
 import ru.practicum.explore_with_me.main_service.model.db_entities.event.EventEntity;
 import ru.practicum.explore_with_me.main_service.model.db_entities.event.GeoLocationEntity;
@@ -22,12 +21,17 @@ import java.util.List;
 import java.util.TreeSet;
 
 @Mapper(componentModel = "spring")
-public interface EventMapper extends ObjectMapper<EventEntity, Event, EventRestCommand, EventRestView> {
+public interface EventMapper {
 
-    @Override
     @Mapping(target = "category.id", source = "category")
     @Mapping(target = "eventDate", qualifiedByName = "mapEventDate")
     Event fromRestCommand(EventRestCommand eventRestCommand);
+
+    EventRestView toRestView(Event event);
+
+    Event fromDbEntity(EventEntity eventEntity);
+
+    EventEntity toDbEntity(Event event);
 
     EventRestViewShort mapEventRestViewShortFromEvent(Event event);
 

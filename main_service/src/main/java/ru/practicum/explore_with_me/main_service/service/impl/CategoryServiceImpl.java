@@ -10,7 +10,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
 
 import ru.practicum.explore_with_me.main_service.exception.ObjectNotFoundException;
-import ru.practicum.explore_with_me.main_service.mapper.impl.CategoryMapper;
+import ru.practicum.explore_with_me.main_service.mapper.CategoryMapper;
 import ru.practicum.explore_with_me.main_service.model.db_entities.CategoryEntity;
 import ru.practicum.explore_with_me.main_service.model.domain_pojo.Category;
 import ru.practicum.explore_with_me.main_service.model.rest_dto.category.CategoryRestCommand;
