@@ -15,7 +15,6 @@ import ru.practicum.explore_with_me.main_service.controller.ExploreWithMeExcepti
 import ru.practicum.explore_with_me.main_service.model.rest_dto.category.CategoryRestCommand;
 import ru.practicum.explore_with_me.main_service.model.rest_dto.category.CategoryRestView;
 import ru.practicum.explore_with_me.main_service.service.*;
-import ru.practicum.explore_with_me.stats_service.client_submodule.StatsClient;
 
 import java.nio.charset.StandardCharsets;
 
@@ -33,18 +32,6 @@ public class AdminCategoryControllerTest {
     ObjectMapper objectMapper;
     @MockBean
     CategoryService categoryService;
-    @MockBean
-    UserService userService;
-    @MockBean
-    EventService eventService;
-    @MockBean
-    RequestService requestService;
-    @MockBean
-    CompilationService compilationService;
-    @MockBean
-    LikeService likeService;
-    @MockBean
-    StatsClient statsClient;
     @Autowired
     private MockMvc mvc;
 

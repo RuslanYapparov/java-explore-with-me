@@ -7,14 +7,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
-import ru.practicum.explore_with_me.main_service.controller.admin.AdminEventsController;
+
+import ru.practicum.explore_with_me.main_service.controller.for_authorized.PrivateEventController;
 import ru.practicum.explore_with_me.main_service.model.domain_pojo.event.EventState;
 import ru.practicum.explore_with_me.main_service.model.rest_dto.category.CategoryRestView;
 import ru.practicum.explore_with_me.main_service.model.rest_dto.event.*;
 import ru.practicum.explore_with_me.main_service.model.rest_dto.user.UserShort;
 import ru.practicum.explore_with_me.main_service.service.*;
-import ru.practicum.explore_with_me.stats_service.client_submodule.StatsClient;
 import ru.practicum.explore_with_me.stats_service.dto_submodule.dto.EwmConstants;
 
 import java.nio.charset.StandardCharsets;
@@ -27,24 +28,13 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@WebMvcTest(controllers = {AdminEventsController.class})
+@WebMvcTest(controllers = {PrivateEventController.class})
+@ContextConfiguration(classes = { PrivateEventController.class })
 public class PrivateEventsControllerTest {
     @Autowired
     ObjectMapper objectMapper;
     @MockBean
     EventService eventService;
-    @MockBean
-    CategoryService categoryService;
-    @MockBean
-    UserService userService;
-    @MockBean
-    RequestService requestService;
-    @MockBean
-    CompilationService compilationService;
-    @MockBean
-    LikeService likeService;
-    @MockBean
-    StatsClient statsClient;
     @Autowired
     private MockMvc mvc;
 
