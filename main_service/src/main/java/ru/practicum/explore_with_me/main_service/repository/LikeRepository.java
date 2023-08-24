@@ -7,14 +7,17 @@ import ru.practicum.explore_with_me.main_service.model.db_entities.LikeEntity;
 import java.math.BigInteger;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface LikeRepository extends JpaRepository<LikeEntity, BigInteger> {
+
+    Optional<LikeEntity> findByUserIdAndEventId(long userId, long eventId);
 
     List<LikeEntity> findAllByUserId(long userId);
 
     List<LikeEntity> findAllByEventId(long eventId);
 
-    List<LikeEntity> findAllByEventIdAndEventEventDateAfter(long id, LocalDateTime now);
+    List<LikeEntity> findAllByEventIdAndEventEventDateBefore(long id, LocalDateTime now);
 
 }

@@ -13,5 +13,7 @@ public class UserRestView {
     String name;
     @JsonProperty("email")
     String email;
+    @JsonProperty("initiatorRating")
+    float rating;
 
 }

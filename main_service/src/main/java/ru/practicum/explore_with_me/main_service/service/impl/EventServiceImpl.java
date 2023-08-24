@@ -65,6 +65,15 @@ public class EventServiceImpl implements EventService {
         eventEntity.setCategory(category);
         eventEntity.setCreatedOn(LocalDateTime.now());
         eventEntity = eventRepository.save(eventEntity);
+        List<EventEntity> initiatorsEvents = initiator.getEvents();
+        if (initiatorsEvents == null) {
+            initiatorsEvents = new ArrayList<>();
+            initiatorsEvents.add(eventEntity);
+        } else {
+            initiatorsEvents.add(eventEntity);
+        }
+        initiator.setEvents(initiatorsEvents);
+        userRepository.save(initiator);
         event = eventMapper.fromDbEntity(eventEntity);
         log.info("User with id'{}' created new event '{}'", userId, event);
         return eventMapper.toRestView(event);

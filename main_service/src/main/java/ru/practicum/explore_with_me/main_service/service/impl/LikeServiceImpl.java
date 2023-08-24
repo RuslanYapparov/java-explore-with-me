@@ -1,13 +1,10 @@
 package ru.practicum.explore_with_me.main_service.service.impl;
 
-import com.querydsl.core.types.dsl.BooleanExpression;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
+
 import ru.practicum.explore_with_me.main_service.exception.BadRequestParameterException;
 import ru.practicum.explore_with_me.main_service.exception.ObjectModificationException;
 import ru.practicum.explore_with_me.main_service.exception.ObjectNotFoundException;
@@ -18,24 +15,18 @@ import ru.practicum.explore_with_me.main_service.model.db_entities.UserEntity;
 import ru.practicum.explore_with_me.main_service.model.db_entities.event.EventEntity;
 import ru.practicum.explore_with_me.main_service.model.domain_pojo.event.Event;
 import ru.practicum.explore_with_me.main_service.model.domain_pojo.event.EventState;
-import ru.practicum.explore_with_me.main_service.model.domain_pojo.params_holder.JpaGetEventAuthorsQueryParamsHolder;
 import ru.practicum.explore_with_me.main_service.model.rest_dto.event.EventRestView;
-import ru.practicum.explore_with_me.main_service.model.rest_dto.like.HttpGetAuthorsWithRatingRequestParamsHolder;
 import ru.practicum.explore_with_me.main_service.model.rest_dto.like.LikeRestCommand;
 import ru.practicum.explore_with_me.main_service.model.rest_dto.like.LikedEventsRestView;
 import ru.practicum.explore_with_me.main_service.model.rest_dto.like.WhoLikedRestView;
-import ru.practicum.explore_with_me.main_service.model.rest_dto.user.UserRestView;
 import ru.practicum.explore_with_me.main_service.repository.EventRepository;
 import ru.practicum.explore_with_me.main_service.repository.LikeRepository;
 import ru.practicum.explore_with_me.main_service.repository.UserRepository;
 import ru.practicum.explore_with_me.main_service.service.LikeService;
-import ru.practicum.explore_with_me.main_service.util.MethodParameterValidator;
-import ru.practicum.explore_with_me.main_service.util.QueryDslExpressionCreator;
 import ru.practicum.explore_with_me.main_service.util.StatsServiceIntegrator;
 
 import javax.validation.Valid;
 import javax.validation.constraints.Positive;
-import java.math.BigInteger;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -58,13 +49,17 @@ public class LikeServiceImpl implements LikeService {
         long eventId = likeRestCommand.getEvent();
         UserEntity userEntity = getUserEntityIfExists(userId);
         EventEntity eventEntity = getEventEntityIfExists(eventId);
+        UserEntity initiator = eventEntity.getInitiator();
+        initiator.getEvents().remove(eventEntity);
         if (!EventState.PUBLISHED.name().equals(eventEntity.getState())) {
             throw new ObjectModificationException("Failed to put like to event with id'" + eventId +
                     "': event not in PUBLISHED state");
         }
         eventEntity.setRating(likeRestCommand.isLike() ? eventEntity.getRating() + 1 : eventEntity.getRating() - 1);
-        eventEntity.setNumberOfUsersLiked(eventEntity.getNumberOfUsersLiked() + 1);
+        eventEntity.setNumberOfLikes(eventEntity.getNumberOfLikes() + 1);
         eventRepository.save(eventEntity);
+        initiator.getEvents().add(eventEntity);
+        saveInitiatorWithNewRatingAfterLike(initiator);
         LikeEntity likeEntity = new LikeEntity();
         likeEntity.setUser(userEntity);
         likeEntity.setEvent(eventEntity);
@@ -98,7 +93,7 @@ public class LikeServiceImpl implements LikeService {
         WhoLikedRestView whoLikedRestView;
         if (afterEvent) {
             whoLikedRestView = userMapper.mapWhoLikedRestViewFromListOfLikeEntities(
-                    likeRepository.findAllByEventIdAndEventEventDateAfter(eventId, LocalDateTime.now()));
+                    likeRepository.findAllByEventIdAndEventEventDateBefore(eventId, LocalDateTime.now()));
         } else {
             whoLikedRestView = userMapper.mapWhoLikedRestViewFromListOfLikeEntities(
                     likeRepository.findAllByEventId(eventId));
@@ -109,43 +104,23 @@ public class LikeServiceImpl implements LikeService {
     }
 
     @Override
-    public EventRestView removeLikeByUser(@Positive long userId, @Positive BigInteger likeId) {
-        UserEntity userEntity = getUserEntityIfExists(userId);
-        LikeEntity likeEntity = getLikeIfExists(likeId);
-        if (!likeEntity.getUser().equals(userEntity)) {
-            throw new BadRequestParameterException(String.format("Failed to cancel like(dislike) with id'%d': " +
-                    "user with id'%d' don't put this like", likeId, userId));
-        }
+    public EventRestView removeLikeByUser(@Positive long userId, @Positive long eventId) {
+        getUserEntityIfExists(userId);
+        LikeEntity likeEntity = getLikeIfExists(userId, eventId);
         boolean isLike = likeEntity.isLike();
         EventEntity eventEntity = likeEntity.getEvent();
-        eventEntity.setNumberOfUsersLiked(eventEntity.getNumberOfUsersLiked() - 1);
+        UserEntity initiator = eventEntity.getInitiator();
+        initiator.getEvents().remove(eventEntity);
+        eventEntity.setNumberOfLikes(eventEntity.getNumberOfLikes() - 1);
         eventEntity.setRating(isLike ? eventEntity.getRating() - 1 : eventEntity.getRating() + 1);
         eventRepository.save(eventEntity);
-        likeRepository.deleteById(likeId);
+        initiator.getEvents().add(eventEntity);
+        saveInitiatorWithNewRatingAfterLike(initiator);
+        likeRepository.delete(likeEntity);
         Event event = getEventWithViewsFromEventEntity(eventEntity);
         log.info("User with id'{}' removed his {} from event with id'{}'", userId,
                 isLike ? "like" : "dislike", event.getId());
         return eventMapper.toRestView(event);
-    }
-
-    @Override
-    public List<UserRestView> getAuthorsOfEventsSortedByAverageEventRatings(
-            @Positive long userId, @Valid HttpGetAuthorsWithRatingRequestParamsHolder httpParams) {
-        getUserEntityIfExists(userId);
-        JpaGetEventAuthorsQueryParamsHolder paramsHolder =
-                MethodParameterValidator.getValidJpaQueryParamsFromHttpRequest(httpParams);
-        BooleanExpression preparedConditions = QueryDslExpressionCreator.prepareConditionsForQuery(paramsHolder);
-        Sort.Direction direction = httpParams.isAsc() ? Sort.Direction.ASC : Sort.Direction.DESC;
-        int from = httpParams.getFrom();
-        int size = httpParams.getSize();
-        Sort sort = Sort.by(direction, "event.rating / event.numberOfUsersLiked");
-        Pageable page = PageRequest.of(from, size, sort);
-        List<UserEntity> users = userRepository.findAll(preparedConditions, page).toList();
-        log.info("Requested list of initiators ranked by events ratings sent to client. List size={}. Paging " +
-                "parameters: from={}, size={}, direction={}", users.size(), from, size, direction);
-        return users.stream()
-                .map(userEntityInStream -> userMapper.toRestView(userMapper.fromDbEntity(userEntityInStream)))
-                .collect(Collectors.toList());
     }
 
     private EventEntity getEventEntityIfExists(long eventId) {
@@ -158,15 +133,32 @@ public class LikeServiceImpl implements LikeService {
                 "Failed to save/cancel/get like: user with id'" + userId + "' was not saved"));
     }
 
-    private LikeEntity getLikeIfExists(BigInteger likeId) {
-        return likeRepository.findById(likeId).orElseThrow(() -> new ObjectNotFoundException(
-                "Failed to save/cancel/get like: like with id'" + likeId + "' was not saved"));
+    private LikeEntity getLikeIfExists(long userId, long eventId) {
+        return likeRepository.findByUserIdAndEventId(userId, eventId).orElseThrow(() ->
+                new ObjectNotFoundException(String.format("Failed to save/cancel/get like: like(dislike) from " +
+                    "user with id'%d' to event with id'%d' was not saved", userId, eventId)));
     }
 
     private Event getEventWithViewsFromEventEntity(EventEntity eventEntity) {
         return eventMapper.fromDbEntity(eventEntity).toBuilder()
                 .views(statsServiceIntegrator.getViewsForOneUri("/events/" + eventEntity.getId()))
                 .build();
+    }
+
+    private void saveInitiatorWithNewRatingAfterLike(UserEntity userEntity) {
+        List<EventEntity> eventEntities = userEntity.getEvents().stream()
+                .filter(eventEntity -> EventState.PUBLISHED.name().equals(eventEntity.getState()))
+                .filter(eventEntity -> eventEntity.getNumberOfLikes() > 0)
+                .collect(Collectors.toList());
+        int sumOfEventRating = 0;
+        int sumOfUsersLiked = 0;
+        for (EventEntity eventEntity : eventEntities) {
+            sumOfEventRating += eventEntity.getRating();
+            sumOfUsersLiked += eventEntity.getNumberOfLikes();
+        }
+        userEntity.setRating(sumOfUsersLiked != 0 ?
+                ((float) sumOfEventRating / (float) sumOfUsersLiked) * 100.00F : 0.0F);
+        userRepository.save(userEntity);
     }
 
 }

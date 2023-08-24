@@ -24,6 +24,8 @@ public class UserEntity {
     private String name;
     @Column(name = "email", nullable = false)
     private String email;
+    @Column(name = "user_rating")
+    private float rating;
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "initiator")
     private List<EventEntity> events;
 

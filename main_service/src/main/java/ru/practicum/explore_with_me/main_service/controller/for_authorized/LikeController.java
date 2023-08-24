@@ -6,15 +6,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 import ru.practicum.explore_with_me.main_service.model.rest_dto.event.EventRestView;
-import ru.practicum.explore_with_me.main_service.model.rest_dto.like.HttpGetAuthorsWithRatingRequestParamsHolder;
 import ru.practicum.explore_with_me.main_service.model.rest_dto.like.LikedEventsRestView;
 import ru.practicum.explore_with_me.main_service.model.rest_dto.like.LikeRestCommand;
 import ru.practicum.explore_with_me.main_service.model.rest_dto.like.WhoLikedRestView;
-import ru.practicum.explore_with_me.main_service.model.rest_dto.user.UserRestView;
 import ru.practicum.explore_with_me.main_service.service.LikeService;
-
-import java.math.BigInteger;
-import java.util.List;
 
 @RestController
 @RequestMapping("/users/{user_id}")
@@ -52,34 +47,12 @@ public class LikeController {
         return likeService.getAllUsersWhoLikedEventForInitiator(userId, eventId, afterEvent);
     }
 
-    @GetMapping("/rating/authors")
-    public List<UserRestView> getEventAuthorsSortedByRating(
-            @PathVariable(name = "user_id") long userId,
-            @RequestParam(name = "categories", required = false) long[] categories,
-            @RequestParam(name = "eventsAreOver", required = false) Boolean eventsAreOver,
-            @RequestParam(name = "paid", required = false) Boolean paid,
-            @RequestParam(name = "asc", defaultValue = "false") boolean asc,
-            @RequestParam(name = "from", defaultValue = "0") int from,
-            @RequestParam(name = "size", defaultValue = "10") int size) {
-        HttpGetAuthorsWithRatingRequestParamsHolder paramsHolder = HttpGetAuthorsWithRatingRequestParamsHolder
-                .builder()
-                .categories(categories)
-                .eventsAreOver(eventsAreOver)
-                .paid(paid)
-                .asc(asc)
-                .from(from)
-                .size(size)
-                .build();
-        log.debug("New request from user with id'{}' to get list of authors sorted by event rating " +
-                "was received. Parameters are: {}", userId, paramsHolder);
-        return likeService.getAuthorsOfEventsSortedByAverageEventRatings(userId, paramsHolder);
-    }
-
-    @DeleteMapping("/likes/{like_id}/remove")
+    @DeleteMapping("/likes/{event_id}/remove")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
     public EventRestView removeLike(@PathVariable(name = "user_id") long userId,
-                                    @PathVariable(name = "like_id") BigInteger likeId) {
-        log.debug("New request to remove like with id'{}' from user with id'{}' was received", likeId, userId);
-        return likeService.removeLikeByUser(userId, likeId);
+                                    @PathVariable(name = "event_id") long eventId) {
+        log.debug("New request to remove like with id'{}' from user with id'{}' was received", eventId, userId);
+        return likeService.removeLikeByUser(userId, eventId);
     }
 
 }

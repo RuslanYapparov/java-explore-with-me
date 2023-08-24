@@ -39,8 +39,8 @@ public class EventEntity {
     private int confirmedRequests;
     @Column(name = "event_rating")
     private int rating;
-    @Column(name = "number_of_users_liked")
-    private int numberOfUsersLiked;
+    @Column(name = "number_of_likes")
+    private int numberOfLikes;
     @Column(name = "paid")
     private boolean paid;
     @Column(name = "request_moderation")

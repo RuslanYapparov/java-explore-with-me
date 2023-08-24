@@ -32,6 +32,7 @@ public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final UserMapper userMapper;
 
+    @Override
     public UserRestView saveNewUser(@Valid UserRestCommand userRestCommand) {
         UserEntity userEntity = userMapper.toDbEntity(userMapper.fromRestCommand(userRestCommand));
         userEntity = userRepository.save(userEntity);
@@ -40,6 +41,7 @@ public class UserServiceImpl implements UserService {
         return userMapper.toRestView(user);
     }
 
+    @Override
     public List<UserRestView> getUsersByIds(long[] ids, @PositiveOrZero int from, @Positive int size) {
         Pageable page = PageRequest.of(from / size, size, Sort.by(Sort.Direction.ASC, "id"));
         Page<UserEntity> usersPage;
@@ -54,6 +56,22 @@ public class UserServiceImpl implements UserService {
         return usersPage.map(userEntity -> userMapper.toRestView(userMapper.fromDbEntity(userEntity))).toList();
     }
 
+    @Override
+    public List<UserRestView> getInitiatorsSortedByRating(@PositiveOrZero int from, @Positive int size, boolean asc) {
+        Pageable page;
+        if (asc) {
+            page = PageRequest.of(from / size, size, Sort.by(Sort.Direction.ASC, "rating"));
+        } else {
+            page = PageRequest.of(from / size, size, Sort.by(Sort.Direction.DESC, "rating"));
+        }
+        Page<UserEntity> usersPage = userRepository.findAllDistinctByEventsNotNull(page);
+        log.info("Page of {} initiators sorted {} by rating was sent to the client. " +
+                        "Paging parameters: from={}, size={}",
+                usersPage.getTotalElements(), asc ? "ascending" : "descending", from, size);
+        return usersPage.map(userEntity -> userMapper.toRestView(userMapper.fromDbEntity(userEntity))).toList();
+    }
+
+    @Override
     public void deleteUserById(@Positive long id) {
         UserEntity userEntity = userRepository.findById(id).orElseThrow(() ->
                 new ObjectNotFoundException("Failed to delete user with id'" + id + "': user is not found"));

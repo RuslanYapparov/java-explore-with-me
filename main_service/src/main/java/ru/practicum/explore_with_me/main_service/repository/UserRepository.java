@@ -13,4 +13,6 @@ public interface UserRepository extends JpaRepository<UserEntity, Long>, Queryds
 
     Page<UserEntity> findAllByIdIn(long[] ids, Pageable page);
 
+    Page<UserEntity> findAllDistinctByEventsNotNull(Pageable page);
+
 }

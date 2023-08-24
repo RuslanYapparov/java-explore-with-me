@@ -90,8 +90,8 @@ public class RequestServiceTest {
 
         firstEvent = eventService.saveNewEvent(firstUser.getId(), EventRestCommand.builder()
                 .title("title_1")
-                .annotation("annotation_of_first_request")
-                .description("description_of_first_request")
+                .annotation("annotation_of_first_event")
+                .description("description_of_first_event")
                 .eventDate(DEFAULT_EVENT_DATE.format(EwmConstants.FORMATTER))
                 .category(category.getId())
                 .location(DEFAULT_LOCATION)
@@ -101,8 +101,8 @@ public class RequestServiceTest {
                 .build());
         secondEvent = eventService.saveNewEvent(secondUser.getId(), EventRestCommand.builder()
                 .title("title_2")
-                .annotation("annotation_of_second_request")
-                .description("description_of_second_request")
+                .annotation("annotation_of_second_event")
+                .description("description_of_second_event")
                 .eventDate(DEFAULT_EVENT_DATE.format(EwmConstants.FORMATTER))
                 .category(category.getId())
                 .location(DEFAULT_LOCATION)

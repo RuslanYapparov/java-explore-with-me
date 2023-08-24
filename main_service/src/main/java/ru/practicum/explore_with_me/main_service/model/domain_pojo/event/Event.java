@@ -25,7 +25,7 @@ public class Event {
     int participantLimit;
     int confirmedRequests;
     int rating;
-    int numberOfUsersLiked;
+    int numberOfLikes;
     EventState state;
     LocalDateTime createdOn;
     LocalDateTime publishedOn;

@@ -7,7 +7,6 @@ import ru.practicum.explore_with_me.main_service.exception.BadRequestParameterEx
 import ru.practicum.explore_with_me.main_service.model.db_entities.event.EventEntity;
 import ru.practicum.explore_with_me.main_service.model.domain_pojo.event.EventState;
 import ru.practicum.explore_with_me.main_service.model.domain_pojo.params_holder.JpaAdminGetAllQueryParamsHolder;
-import ru.practicum.explore_with_me.main_service.model.domain_pojo.params_holder.JpaGetEventAuthorsQueryParamsHolder;
 import ru.practicum.explore_with_me.main_service.model.domain_pojo.params_holder.JpaPublicGetAllQueryParamsHolder;
 import ru.practicum.explore_with_me.main_service.model.domain_pojo.params_holder.SortBy;
 import ru.practicum.explore_with_me.main_service.model.domain_pojo.request.RequestStatus;
@@ -16,7 +15,6 @@ import ru.practicum.explore_with_me.main_service.model.rest_dto.event.HttpAdminG
 import ru.practicum.explore_with_me.main_service.model.rest_dto.event.HttpPublicGetAllRequestParamsHolder;
 import ru.practicum.explore_with_me.main_service.model.rest_dto.event.EventRestCommand;
 import ru.practicum.explore_with_me.main_service.model.rest_dto.event.StateAction;
-import ru.practicum.explore_with_me.main_service.model.rest_dto.like.HttpGetAuthorsWithRatingRequestParamsHolder;
 import ru.practicum.explore_with_me.main_service.model.rest_dto.request.RequestStatusSetRestCommand;
 import ru.practicum.explore_with_me.stats_service.dto_submodule.dto.EwmConstants;
 
@@ -127,23 +125,6 @@ public class MethodParameterValidator {
                 .categories(categories)
                 .rangeStart(rangeStart)
                 .rangeEnd(rangeEnd)
-                .from(httpParams.getFrom())
-                .size(httpParams.getSize())
-                .build();
-    }
-
-    public static JpaGetEventAuthorsQueryParamsHolder getValidJpaQueryParamsFromHttpRequest(
-            HttpGetAuthorsWithRatingRequestParamsHolder httpParams) {
-        long[] categories = httpParams.getCategories();
-        if (categories != null) {
-            checkArrayOfLongsForNegativeValues(categories, "category");
-        }
-
-        return JpaGetEventAuthorsQueryParamsHolder.builder()
-                .categories(categories)
-                .paid(httpParams.getPaid())
-                .eventsAreOver(httpParams.getEventsAreOver())
-                .ascendingDirection(httpParams.isAsc())
                 .from(httpParams.getFrom())
                 .size(httpParams.getSize())
                 .build();
