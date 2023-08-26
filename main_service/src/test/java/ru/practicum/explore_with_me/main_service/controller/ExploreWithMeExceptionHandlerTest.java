@@ -8,6 +8,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
 
 import ru.practicum.explore_with_me.main_service.controller.admin.UserController;
@@ -17,7 +18,6 @@ import ru.practicum.explore_with_me.main_service.exception.ObjectNotFoundExcepti
 import ru.practicum.explore_with_me.main_service.exception.StatsServiceProblemException;
 import ru.practicum.explore_with_me.main_service.model.rest_dto.user.UserRestCommand;
 import ru.practicum.explore_with_me.main_service.service.*;
-import ru.practicum.explore_with_me.stats_service.client_submodule.StatsClient;
 
 import javax.validation.ConstraintViolationException;
 import java.nio.charset.StandardCharsets;
@@ -31,21 +31,12 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(controllers = UserController.class)
+@ContextConfiguration(classes = { UserController.class, ExploreWithMeExceptionHandler.class })
 public class ExploreWithMeExceptionHandlerTest {
     @Autowired
     ObjectMapper objectMapper;
     @MockBean
-    CategoryService categoryService;
-    @MockBean
     UserService userService;
-    @MockBean
-    EventService eventService;
-    @MockBean
-    RequestService requestService;
-    @MockBean
-    CompilationService compilationService;
-    @MockBean
-    StatsClient statsClient;
     @Autowired
     private MockMvc mvc;
 

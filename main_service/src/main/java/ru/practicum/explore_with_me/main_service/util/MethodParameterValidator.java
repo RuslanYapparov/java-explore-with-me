@@ -254,7 +254,7 @@ public class MethodParameterValidator {
         }
     }
 
-    private void checkArrayOfLongsForNegativeValues(long[] ids, String entity) {
+    public void checkArrayOfLongsForNegativeValues(long[] ids, String entity) {
         Arrays.stream(ids).forEach(id -> {
             if (id <= 0) {
                 throw new BadRequestParameterException(String.format("There is negative or zero id'%d' " +

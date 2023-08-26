@@ -17,7 +17,7 @@ import javax.validation.constraints.PositiveOrZero;
 import ru.practicum.explore_with_me.main_service.exception.ObjectModificationException;
 import ru.practicum.explore_with_me.main_service.exception.BadRequestParameterException;
 import ru.practicum.explore_with_me.main_service.exception.ObjectNotFoundException;
-import ru.practicum.explore_with_me.main_service.mapper.impl.EventMapper;
+import ru.practicum.explore_with_me.main_service.mapper.EventMapper;
 import ru.practicum.explore_with_me.main_service.model.db_entities.CategoryEntity;
 import ru.practicum.explore_with_me.main_service.model.db_entities.UserEntity;
 import ru.practicum.explore_with_me.main_service.model.db_entities.event.EventEntity;
@@ -65,6 +65,15 @@ public class EventServiceImpl implements EventService {
         eventEntity.setCategory(category);
         eventEntity.setCreatedOn(LocalDateTime.now());
         eventEntity = eventRepository.save(eventEntity);
+        List<EventEntity> initiatorsEvents = initiator.getEvents();
+        if (initiatorsEvents == null) {
+            initiatorsEvents = new ArrayList<>();
+            initiatorsEvents.add(eventEntity);
+        } else {
+            initiatorsEvents.add(eventEntity);
+        }
+        initiator.setEvents(initiatorsEvents);
+        userRepository.save(initiator);
         event = eventMapper.fromDbEntity(eventEntity);
         log.info("User with id'{}' created new event '{}'", userId, event);
         return eventMapper.toRestView(event);
@@ -90,7 +99,7 @@ public class EventServiceImpl implements EventService {
         EventEntity eventEntity = getEventEntityIfExists(eventId);
         if (!eventEntity.getInitiator().equals(initiator)) {
             throw new BadRequestParameterException(String.format("User with id '%d' is not the initiator of " +
-                    "event with id'%d' and can't receive information about it by private API", eventId, userId));
+                    "event with id'%d' and can't receive information about it by private API", userId, eventId));
         }
 
         Event event = eventMapper.fromDbEntity(eventEntity).toBuilder()
@@ -119,6 +128,11 @@ public class EventServiceImpl implements EventService {
         switch (paramsHolder.getSort()) {
             case EVENT_DATE:
                 return events.stream()
+                        .map(eventMapper::mapEventRestViewShortFromEvent)
+                        .collect(Collectors.toList());
+            case RATING:
+                return events.stream()
+                        .sorted(Comparator.comparingInt(Event::getRating).reversed())
                         .map(eventMapper::mapEventRestViewShortFromEvent)
                         .collect(Collectors.toList());
             case VIEWS:

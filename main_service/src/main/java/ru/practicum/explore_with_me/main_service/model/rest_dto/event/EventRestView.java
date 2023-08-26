@@ -37,6 +37,10 @@ public class EventRestView {
     int participantLimit;
     @JsonProperty("confirmedRequests")
     int confirmedRequests;
+    @JsonProperty("rating")
+    int rating;
+    @JsonProperty("numberOfLikes")
+    int numberOfLikes;
     @JsonProperty("paid")
     boolean paid;
     @JsonProperty("requestModeration")

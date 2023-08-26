@@ -1,8 +1,7 @@
-package ru.practicum.explore_with_me.main_service.mapper.impl;
+package ru.practicum.explore_with_me.main_service.mapper;
 
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
-import ru.practicum.explore_with_me.main_service.mapper.ObjectMapper;
 import ru.practicum.explore_with_me.main_service.model.db_entities.RequestEntity;
 import ru.practicum.explore_with_me.main_service.model.domain_pojo.request.Request;
 import ru.practicum.explore_with_me.main_service.model.domain_pojo.request.RequestStatus;
@@ -15,14 +14,16 @@ import java.util.List;
 import java.util.TreeSet;
 
 @Mapper(componentModel = "spring")
-public interface RequestMapper extends ObjectMapper<RequestEntity, Request, RequestRestCommand, RequestRestView> {
+public interface RequestMapper {
 
-    @Override
+    Request fromRestCommand(RequestRestCommand requestRestCommand);
+
+    RequestRestView toRestView(Request request);
+
     @Mapping(target = "requester", ignore = true)
     @Mapping(target = "event", ignore = true)
     RequestEntity toDbEntity(Request request);
 
-    @Override
     @Mapping(target = "requester", source = "requester.id")
     @Mapping(target = "event", source = "event.id")
     Request fromDbEntity(RequestEntity requestEntity);

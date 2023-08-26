@@ -9,11 +9,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
+import ru.practicum.explore_with_me.main_service.controller.ExploreWithMeExceptionHandler;
 import ru.practicum.explore_with_me.main_service.model.rest_dto.category.CategoryRestCommand;
 import ru.practicum.explore_with_me.main_service.model.rest_dto.category.CategoryRestView;
 import ru.practicum.explore_with_me.main_service.service.*;
-import ru.practicum.explore_with_me.stats_service.client_submodule.StatsClient;
 
 import java.nio.charset.StandardCharsets;
 
@@ -25,21 +26,12 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(controllers = AdminCategoryController.class)
+@ContextConfiguration(classes = { AdminCategoryController.class, ExploreWithMeExceptionHandler.class })
 public class AdminCategoryControllerTest {
     @Autowired
     ObjectMapper objectMapper;
     @MockBean
     CategoryService categoryService;
-    @MockBean
-    UserService userService;
-    @MockBean
-    EventService eventService;
-    @MockBean
-    RequestService requestService;
-    @MockBean
-    CompilationService compilationService;
-    @MockBean
-    StatsClient statsClient;
     @Autowired
     private MockMvc mvc;
 

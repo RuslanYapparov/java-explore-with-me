@@ -8,10 +8,12 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
 
 import ru.practicum.explore_with_me.main_service.controller.for_authorized.RequestController;
-import ru.practicum.explore_with_me.main_service.mapper.impl.RequestMapper;
+import ru.practicum.explore_with_me.main_service.mapper.RequestMapper;
+import ru.practicum.explore_with_me.main_service.mapper.RequestMapperImpl;
 import ru.practicum.explore_with_me.main_service.model.domain_pojo.request.RequestStatus;
 import ru.practicum.explore_with_me.main_service.model.rest_dto.request.RequestRestCommand;
 import ru.practicum.explore_with_me.main_service.model.rest_dto.request.RequestRestView;
@@ -34,25 +36,17 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(controllers = {RequestController.class})
+@ContextConfiguration(classes = { RequestController.class })
 public class RequestControllerTest {
     @Autowired
     private ObjectMapper objectMapper;
-    @Autowired
-    private RequestMapper requestMapper;
     @MockBean
     RequestService requestService;
-    @MockBean
-    CategoryService categoryService;
-    @MockBean
-    UserService userService;
-    @MockBean
-    EventService eventService;
-    @MockBean
-    CompilationService compilationService;
     @MockBean
     StatsClient statsClient;
     @Autowired
     private MockMvc mvc;
+    private final RequestMapper requestMapper = new RequestMapperImpl();
 
     private final RequestRestView request = RequestRestView.builder()
             .id(BigInteger.ONE)

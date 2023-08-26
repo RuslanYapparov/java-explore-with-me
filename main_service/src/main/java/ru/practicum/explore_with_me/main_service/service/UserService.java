@@ -14,6 +14,8 @@ public interface UserService {
 
     List<UserRestView> getUsersByIds(long[] ids, @PositiveOrZero int from, @Positive int size);
 
+    List<UserRestView> getInitiatorsSortedByRating(@PositiveOrZero int from, @Positive int size, boolean asc);
+
     void deleteUserById(@Positive long id);
 
 }
