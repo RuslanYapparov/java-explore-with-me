@@ -195,8 +195,7 @@ public class MethodParameterValidator {
             throw new ObjectModificationException("Failed to create/update event: event date and time is in " +
                     "an unsupported format.");
         }
-        if (eventDate.isBefore(LocalDateTime.now())) {       // Странная проверка eventDate, указанная в спецификации.
-            // Наверное, было бы достаточно только проверки на минимальные 2 часа, которая идет после нее.
+        if (eventDate.isBefore(LocalDateTime.now())) {
             throw new BadRequestParameterException("Failed to create/update event: event date and time cannot be earlier " +
                     "than current moment, but was '" + eventDate + "'");
         }

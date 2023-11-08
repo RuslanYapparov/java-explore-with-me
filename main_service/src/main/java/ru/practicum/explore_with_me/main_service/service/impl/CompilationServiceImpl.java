@@ -120,8 +120,7 @@ public class CompilationServiceImpl implements CompilationService {
                 eventEntity.setCompilations(new HashSet<>(Set.of(finalCompilationEntity)));
             }
         });
-        eventRepository.saveAll(new ArrayList<>(events)); // При передаче в метод множества events напрямую получаем
-        // ConcurrentModificationException, поэтому преобразовываю Set в ArrayList
+        eventRepository.saveAll(new ArrayList<>(events));
         Compilation compilation = getCompilationWithEventsWithViews(compilationEntity);
         log.info("Compilation with id'{}' was updated. Updated {}", compId, compilation);
         return compilationMapper.toRestView(compilation);
