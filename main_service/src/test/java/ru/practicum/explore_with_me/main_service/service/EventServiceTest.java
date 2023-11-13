@@ -48,7 +48,7 @@ public class EventServiceTest {
     @MockBean
     StatsClient statsClient;
 
-    private static final LocalDateTime DEFAULT_EVENT_DATE = EwmConstants.DEFAULT_DATE_TIME.plusMonths(2);
+    private static final LocalDateTime DEFAULT_EVENT_DATE = EwmConstants.DEFAULT_DATE_TIME.plusYears(2);
     private static final GeoLocation DEFAULT_LOCATION = GeoLocation.builder()
             .latitude(7.7D)
             .longitude(7.7D)
@@ -237,7 +237,7 @@ public class EventServiceTest {
                 .users(new long[] {firstUser.getId(), secondUser.getId(), 987654321, 77777777})
                 .categories(new long[] {category.getId(), 987654321, 777777777})
                 .rangeStart(EwmConstants.DEFAULT_DATE_TIME.format(EwmConstants.FORMATTER))
-                .rangeEnd(LocalDateTime.now().plusYears(1).format(EwmConstants.FORMATTER))
+                .rangeEnd(LocalDateTime.now().plusYears(3).format(EwmConstants.FORMATTER))
                 .states(new String[] {"PUBLISHED", "PENDING"})
                 .from(0)
                 .size(10)
@@ -281,7 +281,7 @@ public class EventServiceTest {
                 .onlyAvailable(false)
                 .paid(false)
                 .rangeStart(EwmConstants.DEFAULT_DATE_TIME.format(EwmConstants.FORMATTER))
-                .rangeEnd(LocalDateTime.now().plusYears(1).format(EwmConstants.FORMATTER))
+                .rangeEnd(LocalDateTime.now().plusYears(3).format(EwmConstants.FORMATTER))
                 .sort(SortBy.VIEWS.name())
                 .from(0)
                 .size(10)

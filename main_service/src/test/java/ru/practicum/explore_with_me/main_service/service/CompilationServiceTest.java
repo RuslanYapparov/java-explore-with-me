@@ -53,7 +53,7 @@ public class CompilationServiceTest {
     @MockBean
     StatsClient statsClient;
 
-    private static final LocalDateTime DEFAULT_EVENT_DATE = EwmConstants.DEFAULT_DATE_TIME.plusMonths(2);
+    private static final LocalDateTime DEFAULT_EVENT_DATE = EwmConstants.DEFAULT_DATE_TIME.plusYears(2);
     private static final GeoLocation DEFAULT_LOCATION = GeoLocation.builder()
             .latitude(7.7D)
             .longitude(7.7D)
