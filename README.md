@@ -22,7 +22,7 @@ This application has three levels of user interaction:
 
 Public - available without registration to any network user, provides the following abilities:
 
-1. View a list of events with search and filtering support (number of views, event date, category and collections of events);
+1. View a list of events with search and filtering support (number of views, event date, category and compilations of events);
 2. View event details.
 
 Closed - available only to authorized users, provides the following features:
@@ -36,7 +36,7 @@ Administrative - available to administrators, provides the ability to configure 
 
 1. User management - adding, activating, viewing and deleting;
 2. Moderation of events posted by users - publication or rejection;
-3. Manage compilations - add, delete and pin collections of events on the main page;
+3. Manage compilations - add, delete and pin compilations of events on the main page;
 4. Manage categories - add, change and delete categories for events.
 
 ---
@@ -78,6 +78,7 @@ and also send data to the statistics service module on port 9090 (http://localho
 otherwise you will need to change the corresponding settings in the application.properties and docker-compose.yml files
 
 Launch terminal/command line/PowerShell, execute the commands one by one, waiting for each one to complete:
+
 ```
 cd {destination directory to download the project}
 
